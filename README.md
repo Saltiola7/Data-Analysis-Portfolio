@@ -20,8 +20,9 @@ Take a look at each below or by navigating through the repository or my Tableau 
 - [Airline](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/airline.ipynb)
 - [Cancer patient dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/cancer-patient-dataset.ipynb)
 - [McDonalds Dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/mcdonalds.ipynb)
-- [Wallmart Sales Analysis](https://public.tableau.com/views/WallmartSalesAnalysis_16593931691930/Story1?:language=en-US&:display_count=n&:origin=viz_share_link)
 - [Globally scientifically documented use cases for Cannabis](https://public.tableau.com/views/UseofdifferentpartsofCannabisfordifferentmedicalusesindifferentcountries/Sheet8?:language=en-US&:display_count=n&:origin=viz_share_link)
+- [Wallmart Sales Analysis](https://public.tableau.com/views/WallmartSalesAnalysis_16593931691930/Story1?:language=en-US&:display_count=n&:origin=viz_share_link)
+
 
 # Certification and Recommendation Letter from [Brainnest](https://www.brainnest.consulting/)
 ![](Brainnest/Tommi-Saltiola-Data-Analysis-Industry-Training.jpg)
