@@ -3,10 +3,10 @@ import json
 import csv
 
 # Your Shopify Admin API access token
-ACCESS_TOKEN = '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'
+ACCESS_TOKEN = 'ACCESS_TOKEN'
 
 # Your Shopify store's GraphQL endpoint
-GRAPHQL_URL = 'https://gorillawearfi.myshopify.com/admin/api/2022-07/graphql.json'
+GRAPHQL_URL = 'GRAPHQL_URL'
 
 # Initialize CSV file
 with open('active_shopify_products_graphql.csv', 'w', newline='') as csvfile:
