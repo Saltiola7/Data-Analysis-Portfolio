@@ -1,6 +1,6 @@
 # Exploring the Oura Ring Data
 Cloned from: https://github.com/crystoll/oura-ring.git
-Work in progress. I have uploaded my own Oura data here, but since the code is written for json and my data came in csv, there is some debugging to be done to get it to work. 
+Work in progress.
 
 ## Getting and understanding the data
 
