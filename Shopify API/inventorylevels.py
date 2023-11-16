@@ -2,8 +2,8 @@ import requests
 import csv
 
 # Your Shopify store details and access token
-SHOPIFY_STORE = "gorillawearfi.myshopify.com"
-ACCESS_TOKEN = "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"  # Reset and put your new token here
+SHOPIFY_STORE = "SHOPIFY_STORE"
+ACCESS_TOKEN = "ACCESS_TOKEN"  # Reset and put your new token here
 
 GRAPHQL_URL = f"https://{SHOPIFY_STORE}/admin/api/2022-07/graphql.json"
 
