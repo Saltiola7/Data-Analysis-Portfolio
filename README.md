@@ -3,7 +3,7 @@
 Welcome to my data analysis portfolio, which showcases my use of Python/Jupyter with numPy, matplotlib, pandas, seaborn, scipy and plotly as well as Tableau. Jupyter Notebooks analyze datasets for Airline, McDonalds, Cancer patients and Oura Smart Ring. Tableau projects include Wallmart Sales Analysis and Globally scientifically documented use cases for Cannabis. 
 
 ## Data Engineer certification from [Datacamp](https://www.datacamp.com/)
-![](DEA0017031997389.pdf)
+![](DEA0017031997389.jpg)
 
 ## Shopify API
 - Querying the most popular products so we can display them in headless ecommerce with live data accordingly in the popular products section
