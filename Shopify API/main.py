@@ -2,8 +2,8 @@ import requests
 import csv
 
 # Replace these with your actual credentials
-API_KEY = "101a1115ad362c7c9c7af8aeadc873df"
-PASSWORD = "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"
+API_KEY = "API_KEY"
+PASSWORD = "PASSWORD"
 
 # The URL to your specific Shopify store
 API_URL = "https://gorillawearfi.myshopify.com/admin/api/2022-07/products.json"
