@@ -6,7 +6,7 @@ from prefect import get_run_logger
 # Parse Server/Back4App API credentials
 application_id = ''
 rest_api_key = ''
-base_url = 'b'
+base_url = ''
 
 headers = {
     "X-Parse-Application-Id": application_id,
