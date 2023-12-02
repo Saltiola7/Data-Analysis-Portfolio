@@ -1,4 +1,4 @@
-# Data Analysis Portfolio
+# Data Engineering & Analysis Portfolio
 
 Welcome to my data analysis portfolio, which showcases my use of Python/Jupyter with numPy, matplotlib, pandas, seaborn, scipy and plotly as well as Tableau. Jupyter Notebooks analyze datasets for Airline, McDonalds, Cancer patients and Oura Smart Ring. Tableau projects include Wallmart Sales Analysis and Globally scientifically documented use cases for Cannabis. 
 

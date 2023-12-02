@@ -21,7 +21,7 @@ def load_jobs_task(combined_data):
     load.load_jobs(combined_data)
 
 @flow(name="polqoy_scraper")
-def polqoy_scraper_flow():
+def scraper_flow():
     kuntarekry_result = scrape_kuntarekry_task()
     tarjouspalvelu_result = scrape_tarjouspalvelu_task()
     hankintailmoitukset_result = scrape_hankintailmoitukset_task()
@@ -31,4 +31,4 @@ def polqoy_scraper_flow():
     load_jobs_task(combined_data)
 
 if __name__ == "__main__":
-    polqoy_scraper_flow()
+    scraper_flow()

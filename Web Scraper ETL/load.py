@@ -4,9 +4,9 @@ from datetime import datetime
 from prefect import get_run_logger
 
 # Parse Server/Back4App API credentials
-application_id = '2rujmsH23xhOQITWeCYY1OcxMMMPPUgf5c3T2g3j'
-rest_api_key = 'BI4nuc2zD4gez1iQ5aqH03llfv2Pv7NXVwNii2LL'
-base_url = 'https://parseapi.back4app.com/classes/ExternalJob'
+application_id = ''
+rest_api_key = ''
+base_url = 'b'
 
 headers = {
     "X-Parse-Application-Id": application_id,
