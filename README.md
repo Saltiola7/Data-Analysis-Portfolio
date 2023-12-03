@@ -15,12 +15,10 @@ Welcome to my data analysis portfolio, which showcases my use of Python/Jupyter 
 ## Certifications
 ### Data Engineer certification from [Datacamp](https://www.datacamp.com/)
 ![](DEA0017031997389.jpg)
-### Data Analyst Certification from [Brainnest](https://brainnest.consulting)
-[Brainnest](https://www.brainnest.consulting/)
-![](Brainnest/Tommi-Saltiola-Data-Analysis-Industry-Training.jpg)
-### Certification and 
 
-## Recommendation Letters and Testimonials from 
+## Recommendation Letters and Testimonials
+**Vesa Karjalainen, Polq Oy:** I had the opportunity to work with Tommi on developing a critical scraping tool and server for our company. His technical expertise, innovative approach, and dedication to understanding our specific needs resulted in a seamless and efficient solution. The tool has significantly improved our data collection processes, demonstrating Tommi's ability to deliver high-quality work under tight deadlines. His professionalism and willingness to go the extra mile made a remarkable difference. I highly recommend Tommi to anyone looking for exceptional technical solutions in data management and infrastructure.
+
 ![](Brainnest/Recommendation-Letter.jpg)
 
 ## Web Scraping
