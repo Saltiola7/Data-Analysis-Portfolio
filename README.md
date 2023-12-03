@@ -1,6 +1,6 @@
 # Data Engineering & Analysis Portfolio
 
-Welcome to my data analysis portfolio, which showcases my use of Python/Jupyter with numPy, matplotlib, pandas, seaborn, scipy and plotly as well as Tableau. Jupyter Notebooks analyze datasets for Airline, McDonalds, Cancer patients and Oura Smart Ring. Tableau projects include Wallmart Sales Analysis and Globally scientifically documented use cases for Cannabis. 
+Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL pipeline, Jupyter Notebooks analyzing many different datasets as well as data visualizations using Tableau.
 
 ## Table of Contents
 - Certifications
@@ -21,8 +21,10 @@ Welcome to my data analysis portfolio, which showcases my use of Python/Jupyter 
 
 ![](Brainnest/Recommendation-Letter.jpg)
 
-## Web Scraping
-- Scraping job board data from multiple websites to custom job board application.
+## Web Scraping ETL
+Scraping job board data from multiple websites to custom job board application.
+
+Here a flow chart showcasing what each module does
 
 ## Utility Scripts
 ### FDA Compliancy Script 
