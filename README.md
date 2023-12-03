@@ -46,4 +46,4 @@ Take a look at each below or by navigating through the repository or my Tableau 
 ![](Brainnest/Tommi-Saltiola-Data-Analysis-Industry-Training.jpg)
 ![](Brainnest/Recommendation-Letter.jpg)
 
-## Oura folder is a work in progerss with my personal health data
+## Oura folder is 
