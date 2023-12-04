@@ -5,12 +5,10 @@ Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL 
 ## Table of Contents
 - Certifications
 - Recommendation Letters & Testimonials
-- Projects
-  - Web Scraping ETL Pipeline for Polq Oy
-  - Utility Scripts With Python & JavaScript
-  - Datacamp Projects
-  - Brainnest Projects
-  - Hobby Projects
+- Web Scraping ETL Pipeline
+- Jupyter Notebooks
+- Tableau
+- Utility Scripts With Python & JavaScript
 
 ## Certifications
 ### Data Engineer certification from [Datacamp](https://www.datacamp.com/)
