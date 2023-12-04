@@ -28,7 +28,8 @@ It was first build with the community Docker Compose setup, but was moved to Pre
 
 ## Datacamp Projects
 
-### Netflix & Brainnest folders have jupyter notebooks
+I use various python data science packages, e.g.: numPy, matplotlib, pandas, seaborn, scipy.
+
 - Data cleaning & fixing structural errors
 - Check for outliers
 - Descriptive Statistic
@@ -41,11 +42,20 @@ It was first build with the community Docker Compose setup, but was moved to Pre
 - What is Wallmarts most sold product?
 - What are the most documented use cases for cannabis, where?
 
+### Cancer Patients Dataset
+#### Why does higher % of gender 1 have malignant tumours?
+Gender & Cancer Level Crosstab
+Gender & Alcohol use
+Gender & Air pollution
+Gender & Genetic Risk
+#### What other features may be linked to malignant tumours?
+Cancer Level & Obesity
+Age bins & Cancer Level
+
+- [Cancer patient dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/cancer-patient-dataset.ipynb)
+
 ### Airline Dataset
 - [Airline](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/airline.ipynb)
-
-### Cancer Patients Dataset
-- [Cancer patient dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/cancer-patient-dataset.ipynb)
 
 ### McDonalds Dataset
 - [McDonalds Dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/mcdonalds.ipynb)
@@ -58,7 +68,8 @@ It was first build with the community Docker Compose setup, but was moved to Pre
 ### Scientifically Documented Use Cases for Cannabis Sativa L.
 - [Scientifically documented use cases for Cannabis](https://public.tableau.com/views/UseofdifferentpartsofCannabisfordifferentmedicalusesindifferentcountries/Sheet8?:language=en-US&:display_count=n&:origin=viz_share_link)
 
-## Utility Scripts with Python for Spreadsheets and Databases
+## Utility Scripts 
+#### Python for Spreadsheets and Databases
 ### FDA Compliancy Script 
 - Scrapes all pages of a website into a csv which can be imported to ChatGPT for analysis. We also give lates guidelines together with the CSV and prompt ChatGPT to point out any content that is against the guidelines. Saves time for creating compliant CBD content.
 
