@@ -24,8 +24,6 @@ Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL 
 ## Web Scraping ETL
 Scraping job board data from multiple websites to custom job board application.
 
-Here a flow chart showcasing what each module does
-
 It was first build with the community Docker Compose setup, but was moved to Prefect.io before launch as it was a more streamlined solution for the client.
 
 ## Utility Scripts
