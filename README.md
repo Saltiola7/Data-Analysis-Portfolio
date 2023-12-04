@@ -26,6 +26,8 @@ Scraping job board data from multiple websites to custom job board application.
 
 Here a flow chart showcasing what each module does
 
+It was first build with the community Docker Compose setup, but was moved to Prefect.io before launch as it was a more streamlined solution for the client.
+
 ## Utility Scripts
 ### FDA Compliancy Script 
 - Scrapes all pages of a website into a csv which can be imported to ChatGPT for analysis. We also give lates guidelines together with the CSV and prompt ChatGPT to point out any content that is against the guidelines. Saves time for creating compliant CBD content.
