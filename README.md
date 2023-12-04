@@ -52,18 +52,12 @@ Gender & Genetic Risk
 Cancer Level & Obesity
 Age bins & Cancer Level
 
-### Airline Dataset
-- [Airline](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Notebooks/airline.ipynb)
+### [Airline](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Notebooks/airline.ipynb)
 
-### McDonalds Dataset
-- [McDonalds Dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Notebooks/mcdonalds.ipynb)
+### [McDonalds Dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Notebooks/mcdonalds.ipynb)
 
 ## Tableau
-
-### Scientifically Documented Use Cases for Cannabis Sativa L.
-- [Scientifically documented use cases for Cannabis](https://public.tableau.com/views/UseofdifferentpartsofCannabisfordifferentmedicalusesindifferentcountries/Sheet8?:language=en-US&:display_count=n&:origin=viz_share_link)
-
-### Wallmart Sales Analysis
+- [Scientifically Documented Use Cases for *Cannabis Sativa L.*](https://public.tableau.com/views/UseofdifferentpartsofCannabisfordifferentmedicalusesindifferentcountries/Sheet8?:language=en-US&:display_count=n&:origin=viz_share_link)
 - [Wallmart Sales Analysis](https://public.tableau.com/views/WallmartSalesAnalysis_16593931691930/Story1?:language=en-US&:display_count=n&:origin=viz_share_link)
 
 ## [Utility Scripts](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts)
@@ -72,14 +66,11 @@ Age bins & Cancer Level
 - Scrapes all pages of a website into a csv which can be imported to ChatGPT for analysis. We also give lates guidelines together with the CSV and prompt ChatGPT to point out any content that is against the guidelines. Saves time for creating compliant CBD content.
 
 ### [Shopify API](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts/Shopify-API)
-Data-Analysis-Portfolio/Scripts/Shopify API
 - Querying the most popular products so we can display them in headless ecommerce with live data accordingly in the popular products section
 
 ### [Airtable Scripts and Extensions](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts/Airtable)
-Data-Analysis-Portfolio/Scripts/Airtable
 - Splitting data in one column into multiple columns with
 - Built my own markdown to html extension so that we can write markdown into airtable and sync it as html to Webflow CMS
 
 ### [Google Sheets for Lead Generation](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts/GSheets)
-Data-Analysis-Portfolio/Scripts/GSheets
 - Script for checking the pagespeeds for URLs in column. Useful for lead generation. Also other smaller data cleaning scripts
