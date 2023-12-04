@@ -26,20 +26,6 @@ Scraping job board data from multiple websites to custom job board application.
 
 It was first build with the community Docker Compose setup, but was moved to Prefect.io before launch as it was a more streamlined solution for the client.
 
-## Utility Scripts
-### FDA Compliancy Script 
-- Scrapes all pages of a website into a csv which can be imported to ChatGPT for analysis. We also give lates guidelines together with the CSV and prompt ChatGPT to point out any content that is against the guidelines. Saves time for creating compliant CBD content.
-
-### Shopify API
-- Querying the most popular products so we can display them in headless ecommerce with live data accordingly in the popular products section
-
-### Airtable Scripts and Extensions
-- Splitting data in one column into multiple columns with
-- Built my own markdown to html extension so that we can write markdown into airtable and sync it as html to Webflow CMS
-
-### Google Sheets for Lead Generation
-- Script for checking the pagespeeds for URLs in column. Useful for lead generation. Also other smaller data cleaning scripts
-
 ## Datacamp Projects
 
 ### Netflix & Brainnest folders have jupyter notebooks
@@ -55,15 +41,27 @@ It was first build with the community Docker Compose setup, but was moved to Pre
 - What is Wallmarts most sold product?
 - What are the most documented use cases for cannabis, where?
 
-## Brainnest Projects
+## Utility Scripts
+### FDA Compliancy Script 
+- Scrapes all pages of a website into a csv which can be imported to ChatGPT for analysis. We also give lates guidelines together with the CSV and prompt ChatGPT to point out any content that is against the guidelines. Saves time for creating compliant CBD content.
 
-### Airline
+### Shopify API
+- Querying the most popular products so we can display them in headless ecommerce with live data accordingly in the popular products section
+
+### Airtable Scripts and Extensions
+- Splitting data in one column into multiple columns with
+- Built my own markdown to html extension so that we can write markdown into airtable and sync it as html to Webflow CMS
+
+### Google Sheets for Lead Generation
+- Script for checking the pagespeeds for URLs in column. Useful for lead generation. Also other smaller data cleaning scripts
+
+### Airline Dataset
 - [Airline](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/airline.ipynb)
 
-### Cancer Patients
+### Cancer Patients Dataset
 - [Cancer patient dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/cancer-patient-dataset.ipynb)
 
-### McDonalds
+### McDonalds Dataset
 - [McDonalds Dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Brainnest/mcdonalds.ipynb)
 
 ### Wallmart Sales Analysis
