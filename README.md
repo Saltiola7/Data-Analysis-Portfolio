@@ -14,7 +14,7 @@ Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL 
 ## Data Engineer certification from [Datacamp](https://www.datacamp.com/)
 <img src="DEA0017031997389.jpg" width="555" />
 
-## Recommendation Letter from Data Analyst Mentor
+## Recommendation Letter from [Data Analyst Lecturer](https://www.researchgate.net/profile/Elnaz-Gholipour)
 <img src="Recommendation-Letter.jpg" width="555" />
 
 ## Testimonial from Web Scraping Client
