@@ -3,21 +3,24 @@
 Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL pipeline, Jupyter Notebooks analyzing many different datasets as well as data visualizations using Tableau.
 
 ## Table of Contents
-- Certifications
-- Recommendation Letters & Testimonials
+- Data Engineer certification from Datacamp
+- Recommendation Letter from Data Analyst Mentor
+- Testimonial from Web Scraping Client
 - Web Scraping ETL Pipeline
 - Jupyter Notebooks
-- Tableau
-- Utility Scripts With Python & JavaScript
+- Tableau Visualizations
+- Utility Scripts With Python for Google Sheets, Airtable, Shopify, ChatGPT
 
-## Certifications
-### Data Engineer certification from [Datacamp](https://www.datacamp.com/)
+## Data Engineer certification from [Datacamp](https://www.datacamp.com/)
 <img src="DEA0017031997389.jpg" width="666" />
 
-## Recommendation Letters and Testimonials
+## Recommendation Letter from Data Analyst Mentor
+<img src="Recommendation-Letter.jpg" width="555" />
+
+## Testimonial from Web Scraping Client
 **Vesa Karjalainen, Polq Oy:** I had the opportunity to work with Tommi on developing a critical scraping tool and server for our company. His technical expertise, innovative approach, and dedication to understanding our specific needs resulted in a seamless and efficient solution. The tool has significantly improved our data collection processes, demonstrating Tommi's ability to deliver high-quality work under tight deadlines. His professionalism and willingness to go the extra mile made a remarkable difference. I highly recommend Tommi to anyone looking for exceptional technical solutions in data management and infrastructure.
 
-<img src="Recommendation-Letter.jpg" width="555" />
+
 
 ## [Web Scraping ETL](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Web-Scraper-ETL)
 Scraping job board data from multiple websites to custom job board application.
