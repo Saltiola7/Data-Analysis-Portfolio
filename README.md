@@ -12,7 +12,7 @@ Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL 
 - Utility Scripts With Python for Google Sheets, Airtable, Shopify, ChatGPT
 
 ## Data Engineer certification from [Datacamp](https://www.datacamp.com/)
-<img src="DEA0017031997389.jpg" width="666" />
+<img src="DEA0017031997389.jpg" width="555" />
 
 ## Recommendation Letter from Data Analyst Mentor
 <img src="Recommendation-Letter.jpg" width="555" />
