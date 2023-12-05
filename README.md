@@ -12,12 +12,12 @@ Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL 
 
 ## Certifications
 ### Data Engineer certification from [Datacamp](https://www.datacamp.com/)
-![](DEA0017031997389.jpg)
+<img src="DEA0017031997389.jpg" width="777" />
 
 ## Recommendation Letters and Testimonials
 **Vesa Karjalainen, Polq Oy:** I had the opportunity to work with Tommi on developing a critical scraping tool and server for our company. His technical expertise, innovative approach, and dedication to understanding our specific needs resulted in a seamless and efficient solution. The tool has significantly improved our data collection processes, demonstrating Tommi's ability to deliver high-quality work under tight deadlines. His professionalism and willingness to go the extra mile made a remarkable difference. I highly recommend Tommi to anyone looking for exceptional technical solutions in data management and infrastructure.
 
-<img src="Recommendation-Letter.jpg" width="333" />
+<img src="Recommendation-Letter.jpg" width="444" />
 
 ## [Web Scraping ETL](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Web-Scraper-ETL)
 Scraping job board data from multiple websites to custom job board application.
