@@ -8,8 +8,8 @@ Welcome to my portfolio, which showcases a python & JavaScript web scraping ETL 
 - Testimonial from Web Scraping Client
 - Web Scraping ETL Pipeline
 - Jupyter Notebooks
-- Tableau Visualizations
 - Utility Scripts With Python for Google Sheets, Airtable, Shopify, ChatGPT
+- Tableau Visualizations
 
 ## Data Engineer certification from [Datacamp](https://www.datacamp.com/)
 <img src="DEA0017031997389.jpg" width="555" />
@@ -57,10 +57,6 @@ Age bins & Cancer Level
 
 ### [McDonalds Dataset](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Notebooks/mcdonalds.ipynb)
 
-## Tableau
-- [Scientifically Documented Use Cases for *Cannabis Sativa L.*](https://public.tableau.com/views/UseofdifferentpartsofCannabisfordifferentmedicalusesindifferentcountries/Sheet8?:language=en-US&:display_count=n&:origin=viz_share_link)
-- [Wallmart Sales Analysis](https://public.tableau.com/views/WallmartSalesAnalysis_16593931691930/Story1?:language=en-US&:display_count=n&:origin=viz_share_link)
-
 ## [Utility Scripts](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts)
 #### Python for Spreadsheets and Databases
 ### [FDA Compliancy Script](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts/FDA-Compliancy-Scraper-ChatGPT)
@@ -75,3 +71,7 @@ Age bins & Cancer Level
 
 ### [Google Sheets for Lead Generation](https://github.com/Saltiola7/Data-Analysis-Portfolio/blob/main/Scripts/GSheets)
 - Script for checking the pagespeeds for URLs in column. Useful for lead generation. Also other smaller data cleaning scripts
+
+## Tableau
+- [Scientifically Documented Use Cases for *Cannabis Sativa L.*](https://public.tableau.com/views/UseofdifferentpartsofCannabisfordifferentmedicalusesindifferentcountries/Sheet8?:language=en-US&:display_count=n&:origin=viz_share_link)
+- [Wallmart Sales Analysis](https://public.tableau.com/views/WallmartSalesAnalysis_16593931691930/Story1?:language=en-US&:display_count=n&:origin=viz_share_link)
