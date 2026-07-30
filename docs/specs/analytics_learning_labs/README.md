@@ -303,3 +303,130 @@ per app.
   dependency inventory, provenance summaries, and lifecycle closure.
 - App implementation starts only after LAB-001 behavior, interfaces, schemas,
   and contracts are committed.
+
+## Contracts
+
+### Fixture generation
+
+1. Every generator accepts an integer `seed` and a positive integer `rows`.
+2. Supported row counts are 20 through the contract's `maximum_rows`,
+   inclusive. Values outside that range raise `ValueError` before allocation.
+3. The same generator version, seed, and row count produce equal frames with
+   the same row order and dtypes.
+4. Generated identifiers are stable, lab-prefixed, and unique at the declared
+   grain.
+5. Fixtures use fictional labels and synthetic numeric values only. They
+   contain no names, email addresses, account identifiers, employer records,
+   assessment material, or copied third-party rows.
+6. Generators perform no network, file-system, environment-variable,
+   credential-store, analytics, or telemetry access.
+
+### Validation and analysis
+
+1. `validate_fixture` rejects missing required columns, empty frames, frames
+   above `maximum_rows`, duplicate grain keys, null grain keys, and values
+   outside the lab-specific boundaries.
+2. Analyses call `validate_fixture` before aggregation and never silently
+   discard invalid records.
+3. Every `AnalysisResult.lab_slug` matches its contract, `grain` names the
+   analysis grain, and metric values are finite JSON-compatible scalars.
+4. Primary and secondary tables preserve the declared analytical denominator.
+   Where deduplication is intentional, the result names both source-record and
+   unique-profile counts.
+5. Restaurant repair produces an explicit accepted table and unresolved ledger;
+   it never invents coordinates for an unresolved record.
+6. Health-lab output is descriptive educational evidence only. It does not
+   diagnose, predict an individual's outcome, estimate treatment effect, imply
+   causality, or recommend medical action.
+
+### Marimo application behavior
+
+1. Each source is a valid Marimo app under `marimo check --strict`.
+2. The default app run completes without a failed cell, page error, console
+   error, unhandled exception, network dependency, or credential prompt.
+3. Each app contains exactly one visible H1, an accessible labelled seed
+   control, a limitations statement, a fixture/grain statement, visible
+   metrics, and at least one captioned table.
+4. Changing the seed causes visible fixture identity and result evidence to
+   change without reloading the page.
+5. Loading, success, validation-error, and unexpected-error states are
+   distinguishable in text; color is never the sole signal.
+6. Apps retain no user input after the browser session and make no owner-side
+   write, logging, or analytics request.
+
+### Credential evidence
+
+Only these owner-approved issuer credentials are admitted:
+
+| Credential | Public asset | Required SHA-256 | Official verification |
+|---|---|---|---|
+| Data Scientist | `assets/certifications/datacamp-data-scientist.jpg` | `41b1e4b20344bc75ff0debb054db594213707ca7a413272cd65316fac2c7a748` | `https://careerhub-api.datacamp.com/certificates/DS0020270967326/pdf` |
+| Data Engineer | `assets/certifications/datacamp-data-engineer.jpg` | `a980ae6b80f08b294b57e6f5074f308544571ba4eaf68b7fff8fee500319f3ad` | `https://careerhub-api.datacamp.com/certificates/DE0013887181066/pdf` |
+
+The repository records the owner-provided source path, credential ID, issue
+date, file hash, dimensions, metadata review, and visible-content review.
+Admission fails if a copied asset's hash differs, its metadata contains GPS or
+author identity, or the public page includes assessment prompts, solutions,
+datasets, schemas, metrics, grader rules, or copied assessment output.
+Credentials support broad competency claims only; they do not prove authorship
+of the private assessment implementation.
+
+### Packaging and dependency boundaries
+
+1. The learning-lab project has one `pyproject.toml`, one `uv.lock`, and one
+   local package named `analytics_learning_labs`.
+2. Runtime dependencies are direct, version-constrained, and compatible with
+   Pyodide. No application imports another portfolio project or private module.
+3. Each executed WASM export contains exactly one wheel for the local package
+   and imports it successfully in Chromium.
+4. The root dependency inventory names every direct dependency, its purpose,
+   license, lock source, and browser/WASM boundary.
+
+### CI, Molab, and deployment-preview evidence
+
+1. CI checks all five app paths explicitly or derives them from one committed
+   registry; a partial loop is a failure.
+2. CI runs unit tests, Ruff, strict Marimo checks, executed HTML-WASM export,
+   local-wheel validation, and a Chromium journey for every app.
+3. Durable README links use `blob/main`. Pre-merge Molab checks use the exact
+   pushed 40-character commit SHA and do not mutate remote state.
+4. Before push, executed local WASM plus Chromium is deployment-preview
+   evidence, not proof of public Molab availability.
+5. After push, public verification records the immutable commit URL and treats
+   an unavailable or erroring Molab route as a failed Deploy gate.
+
+### Provenance, migration, and rollback
+
+The five legacy notebooks and six certification scripts are input evidence for
+theme and competency discovery only. Their code, prose, datasets, outputs, and
+history are not migrated. The public migration is a newly authored synthetic
+implementation with a provenance ledger. Rollback is a Git revert of the
+learning-lab and portfolio-integration commits; no user data migration or
+remote service rollback is required.
+
+### Maintenance and retirement
+
+The owner reviews locked dependencies and all Molab links at least quarterly
+and when Marimo, Pyodide, pandas, or the package format changes materially. A
+lab is retired when its default path no longer runs safely, its evidence cannot
+be reproduced, or provenance becomes uncertain. Retirement removes the public
+link first, preserves the reason in the changelog, and never replaces evidence
+with an unsupported claim.
+
+### Required verification
+
+The implementation is admissible only when all of these commands pass:
+
+```bash
+uv sync --frozen --project projects/analytics-learning-labs
+uv run --project projects/analytics-learning-labs pytest
+uv run --project projects/analytics-learning-labs ruff check .
+uv run --project projects/analytics-learning-labs marimo check --strict apps/*.py
+python scripts/validate_wasm_export.py --package analytics_learning_labs <export-dir>
+python scripts/browser_smoke.py --scenario learning-labs --base-url <preview-url>
+python tests/test_repository_only_portfolio.py
+```
+
+The repository may add command wrappers, but they must preserve these
+observations and fail closed on skipped apps, failed cells, browser errors,
+asset-hash drift, provenance drift, or private-source leakage.
