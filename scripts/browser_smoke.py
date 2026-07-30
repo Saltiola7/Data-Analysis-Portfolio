@@ -10,11 +10,49 @@ import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
+from urllib.parse import urlparse
 
 from playwright.sync_api import ConsoleMessage, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 TIMEOUT_MS = 180_000
+ConsoleRecord = tuple[str, str]
+
+_RUNTIME_ERROR_MARKERS = (
+    "modulenotfounderror",
+    "no module named",
+    "traceback",
+    "marimoexceptionraisederror",
+    "cellnotinitializederror",
+    "ancestor raised",
+)
+
+
+def _is_runtime_error(message: str) -> bool:
+    """Return whether browser output exposes a failed Python/Marimo runtime."""
+
+    normalized = message.casefold()
+    compact = "".join(normalized.split())
+    return '"type":"exception"' in compact or any(
+        marker in normalized for marker in _RUNTIME_ERROR_MARKERS
+    )
+
+
+def _is_allowed_remote_noise(message: str) -> bool:
+    """Recognize only known, non-application Molab telemetry diagnostics."""
+
+    if _is_runtime_error(message):
+        return False
+    normalized = message.casefold()
+    required_fragments = (
+        ("debug:", "loading pyodide packages"),
+        ("relay.vector.co", "403"),
+        ("visitor id", "unavailable"),
+        ("export_demos/wasm-intro.py", "404"),
+    )
+    return any(
+        all(fragment in normalized for fragment in fragments) for fragments in required_fragments
+    )
 
 
 class BrowserSmokeError(RuntimeError):
@@ -55,8 +93,10 @@ def _wait_for_recompute(
 
 def _assert_common_page_contracts(
     page: Page,
-    console_errors: list[str],
+    console_messages: list[ConsoleRecord],
     page_errors: list[str],
+    *,
+    remote: bool,
 ) -> None:
     if page.locator("h1").count() != 1:
         raise BrowserSmokeError("page must expose exactly one level-one heading")
@@ -71,9 +111,19 @@ def _assert_common_page_contracts(
         "document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"
     ):
         raise BrowserSmokeError("page causes horizontal document overflow at 390px")
-    if console_errors or page_errors:
+
+    console_errors = [
+        f"{severity}: {message}"
+        for severity, message in console_messages
+        if _is_runtime_error(message)
+        or (severity == "error" and not (remote and _is_allowed_remote_noise(message)))
+    ]
+    fatal_page_errors = [
+        message for message in page_errors if not (remote and _is_allowed_remote_noise(message))
+    ]
+    if console_errors or fatal_page_errors:
         raise BrowserSmokeError(
-            f"browser errors: console={console_errors!r}; page={page_errors!r}"
+            f"browser errors: console={console_errors!r}; page={fatal_page_errors!r}"
         )
 
 
@@ -150,7 +200,10 @@ def _exercise_opportunity(page: Page) -> None:
 
 def _exercise_learning_lab(page: Page) -> None:
     page.locator("h1").wait_for(state="visible", timeout=TIMEOUT_MS)
-    page.wait_for_timeout(10_000)
+    page.get_by_text("Success: analysis ready.", exact=True).wait_for(
+        state="visible",
+        timeout=TIMEOUT_MS,
+    )
     seed_label = page.locator("label").filter(has_text="Seed")
     if seed_label.count() != 1 or seed_label.inner_text().strip() != "Seed":
         raise BrowserSmokeError("learning lab must expose one visible Seed label")
@@ -213,13 +266,15 @@ SCENARIOS: dict[str, Callable[[Page], None]] = {
 }
 
 
-def _exercise(page: Page, url: str, scenario: str) -> None:
-    console_errors: list[str] = []
+def _exercise(page: Page, url: str, scenario: str, *, remote: bool = False) -> None:
+    console_messages: list[ConsoleRecord] = []
     page_errors: list[str] = []
 
     def capture_console(message: ConsoleMessage) -> None:
-        if message.type == "error":
-            console_errors.append(message.text)
+        location = message.location
+        source_url = location.get("url", "")
+        rendered = f"{message.text} [{source_url}]" if source_url else message.text
+        console_messages.append((message.type, rendered))
 
     page.on("console", capture_console)
     page.on("pageerror", lambda error: page_errors.append(str(error)))
@@ -229,14 +284,20 @@ def _exercise(page: Page, url: str, scenario: str) -> None:
         SCENARIOS[scenario](page)
     except (BrowserSmokeError, PlaywrightTimeoutError) as error:
         raise BrowserSmokeError(
-            f"{error}; console={console_errors!r}; page={page_errors!r}"
+            f"{error}; console={console_messages!r}; page={page_errors!r}"
         ) from error
-    _assert_common_page_contracts(page, console_errors, page_errors)
+    _assert_common_page_contracts(
+        page,
+        console_messages,
+        page_errors,
+        remote=remote,
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("site_root", type=Path)
+    parser.add_argument("site_root", type=Path, nargs="?")
+    parser.add_argument("--url")
     parser.add_argument(
         "--scenario",
         choices=SCENARIOS,
@@ -244,22 +305,38 @@ def main() -> None:
     )
     parser.add_argument("--path", default="")
     args = parser.parse_args()
-    root = args.site_root.resolve()
-    server, base_url = _serve(root)
-    url = f"{base_url}{args.path.lstrip('/')}"
+
+    if (args.site_root is None) == (args.url is None):
+        parser.error("provide exactly one local site_root or --url")
+    if args.url is not None:
+        parsed_url = urlparse(args.url)
+        if parsed_url.scheme != "https" or not parsed_url.netloc:
+            parser.error("--url must be an absolute HTTPS URL")
+        if args.path:
+            parser.error("--path is only valid with a local site_root")
+        server = None
+        url = args.url
+        remote = True
+    else:
+        root = args.site_root.resolve()
+        server, base_url = _serve(root)
+        url = f"{base_url}{args.path.lstrip('/')}"
+        remote = False
+
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             try:
                 page = browser.new_page(viewport={"width": 1440, "height": 900})
                 page.emulate_media(reduced_motion="reduce")
-                _exercise(page, url, args.scenario)
+                _exercise(page, url, args.scenario, remote=remote)
             finally:
                 browser.close()
     finally:
-        with contextlib.suppress(Exception):
-            server.shutdown()
-            server.server_close()
+        if server is not None:
+            with contextlib.suppress(Exception):
+                server.shutdown()
+                server.server_close()
     print(f"browser interaction smoke passed: {args.scenario}")
 
 

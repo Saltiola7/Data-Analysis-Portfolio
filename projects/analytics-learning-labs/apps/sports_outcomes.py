@@ -3,6 +3,7 @@
 # dependencies = [
 #     "marimo==0.23.15",
 #     "pandas==3.0.2",
+#     "analytics-learning-labs @ https://raw.githubusercontent.com/Saltiola7/data-portfolio/408740d6edbc58aa7309af308b859daa83fabc58/projects/analytics-learning-labs/browser_wheels/analytics_learning_labs-0.1.0-py3-none-any.whl#sha256=786715a87b8aacd198a5945f44909e0c0e19657c9bb1e50256d776ba12685052",
 # ]
 # ///
 """Interactive fictional judo medal learning lab."""

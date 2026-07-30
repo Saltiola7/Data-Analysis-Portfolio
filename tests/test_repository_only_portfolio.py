@@ -224,3 +224,15 @@ def test_ci_exercises_all_eight_marimo_apps() -> None:
     assert "uv sync --project projects/analytics-learning-labs --locked" in workflow
     assert all(app_filename in workflow for app_filename in LEARNING_LABS.values())
     assert "--scenario learning-labs" in workflow
+
+
+def test_ci_exercises_direct_molab_routes_at_exact_pushed_sha() -> None:
+    workflow = QUALITY_WORKFLOW.read_text(encoding="utf-8")
+
+    assert "github.event.pull_request.head.sha || github.sha" in workflow
+    assert "molab.marimo.io/github/Saltiola7/data-portfolio/blob/${MOLAB_SHA}" in workflow
+    assert all(
+        f"projects/analytics-learning-labs/apps/{app_filename}/wasm" in workflow
+        for app_filename in LEARNING_LABS.values()
+    )
+    assert workflow.count("--url") >= len(LEARNING_LABS)
