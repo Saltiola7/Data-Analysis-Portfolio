@@ -1,5 +1,21 @@
 # Analytics Learning Labs Changelog
 
+## 2026-07-30 - Direct Molab runtime repair
+
+- Replaced shell-only direct Molab routes with an import-closed PEP 723
+  dependency on a deterministic pure-Python wheel pinned to immutable commit
+  `408740d` and SHA-256.
+- Added fail-closed validation of the lock, immutable wheel blob, package-source
+  parity, exact dependency metadata, RECORD hashes and sizes, duplicate archive
+  members, private paths, and all five app headers.
+- Added exact-commit Molab browser journeys that enter the embedded application
+  frame, inspect structured worker events, reject runtime exceptions, and
+  require success, fixture, and table outputs from one non-null kernel run
+  before testing seed recomputation.
+- Revalidated all eight local WASM applications and all five immutable Molab
+  routes. The repository now has more than 300 focused root and project tests.
+- Implementation through commit `cffe59b`.
+
 ## 2026-07-30 - Initial clean-room delivery
 
 - Delivered five deterministic synthetic Marimo labs at explicit analytical

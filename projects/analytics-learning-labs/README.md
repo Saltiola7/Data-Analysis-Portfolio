@@ -79,7 +79,9 @@ Every app:
 The five apps share the `analytics_learning_labs` package for fixture contracts,
 synthetic generators, analysis, and presentation helpers. One project-local
 `pyproject.toml` and `uv.lock` define the executable environment. The host lock,
-PEP 723 headers, and executed browser evidence agree on pandas 3.0.2.
+PEP 723 headers, and executed browser evidence agree on pandas 3.0.2. Direct
+Molab entrypoints install the shared package from a deterministic wheel pinned
+by `browser-wheel-lock.json` to an immutable Git commit and SHA-256.
 
 ## Reproduce locally
 
@@ -93,6 +95,13 @@ uv run --frozen ruff format --check .
 uv run --frozen marimo check --strict apps/*.py
 ```
 
+From the repository root, validate the browser wheel, immutable commit blob,
+package source, dependency metadata, and RECORD:
+
+```bash
+uv run --frozen python scripts/verify_browser_wheel.py
+```
+
 Open one app for interactive review:
 
 ```bash
@@ -100,8 +109,8 @@ uv run --frozen marimo edit apps/airline_delays.py
 ```
 
 The repository quality workflow also executes every app as an HTML-WASM export,
-validates the embedded local package wheel, and exercises each runtime in
-Chromium.
+validates the embedded local package wheel, exercises each runtime in Chromium,
+and repeats the five learning-lab journeys through exact-commit Molab URLs.
 
 ## Data, privacy, and provenance
 

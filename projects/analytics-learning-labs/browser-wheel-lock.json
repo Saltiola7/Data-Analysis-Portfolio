@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "distribution": "analytics-learning-labs",
+  "version": "0.1.0",
+  "filename": "analytics_learning_labs-0.1.0-py3-none-any.whl",
+  "source_commit": "408740d6edbc58aa7309af308b859daa83fabc58",
+  "source_tree_sha256": "cd844a6b6cdc84f4cee38f2972edc174cdee9878a7b29127aaedb82a277602ce",
+  "wheel_sha256": "786715a87b8aacd198a5945f44909e0c0e19657c9bb1e50256d776ba12685052",
+  "url": "https://raw.githubusercontent.com/Saltiola7/data-portfolio/408740d6edbc58aa7309af308b859daa83fabc58/projects/analytics-learning-labs/browser_wheels/analytics_learning_labs-0.1.0-py3-none-any.whl",
+  "requirement": "analytics-learning-labs @ https://raw.githubusercontent.com/Saltiola7/data-portfolio/408740d6edbc58aa7309af308b859daa83fabc58/projects/analytics-learning-labs/browser_wheels/analytics_learning_labs-0.1.0-py3-none-any.whl#sha256=786715a87b8aacd198a5945f44909e0c0e19657c9bb1e50256d776ba12685052"
+}

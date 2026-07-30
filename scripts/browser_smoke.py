@@ -6,15 +6,63 @@ import argparse
 import contextlib
 import functools
 import http.server
+import json
 import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
+from urllib.parse import urlparse
 
-from playwright.sync_api import ConsoleMessage, Page, sync_playwright
+from playwright.sync_api import ConsoleMessage, Frame, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 TIMEOUT_MS = 180_000
+ConsoleRecord = tuple[str, str]
+type ContentTarget = Page | Frame
+_LIVE_LAB_MARKERS = {
+    "Success: analysis ready.",
+    "fixture-identity",
+    "primary-table",
+}
+
+_RUNTIME_ERROR_MARKERS = (
+    "modulenotfounderror",
+    "no module named",
+    "traceback (most recent call last)",
+    "marimoexceptionraisederror",
+    "cellnotinitializederror",
+    "ancestor raised",
+)
+
+
+def _is_runtime_error(message: str) -> bool:
+    """Return whether browser output exposes a failed Python/Marimo runtime."""
+
+    normalized = message.casefold()
+    compact = "".join(normalized.split())
+    return '"type":"exception"' in compact or any(
+        marker in normalized for marker in _RUNTIME_ERROR_MARKERS
+    )
+
+
+def _is_allowed_remote_noise(message: str) -> bool:
+    """Recognize only known, non-application Molab telemetry diagnostics."""
+
+    if _is_runtime_error(message):
+        return False
+    normalized = message.casefold()
+    required_fragments = (
+        ("debug:", "loading pyodide packages"),
+        ("relay.vector.co", "403"),
+        ("api.cr-relay.com", "403"),
+        ("visitor id", "unavailable"),
+        ("no visitor id available",),
+        ("load failed, error in settings", "[https://molab.marimo.io/"),
+        ("export_demos/wasm-intro.py", "404"),
+    )
+    return any(
+        all(fragment in normalized for fragment in fragments) for fragments in required_fragments
+    )
 
 
 class BrowserSmokeError(RuntimeError):
@@ -37,8 +85,81 @@ def _serve(root: Path) -> tuple[http.server.ThreadingHTTPServer, str]:
     return server, f"http://{host}:{port}/"
 
 
-def _wait_for_recompute(
+def _has_live_learning_lab_evidence(
+    console_messages: list[ConsoleRecord],
+) -> bool:
+    markers_by_run: dict[str, set[str]] = {}
+    for _, message in console_messages:
+        event = _kernel_cell_output(message)
+        if event is None:
+            continue
+        run_id, output = event
+        observed = markers_by_run.setdefault(run_id, set())
+        observed.update(marker for marker in _LIVE_LAB_MARKERS if marker in output)
+    return any(_LIVE_LAB_MARKERS <= observed for observed in markers_by_run.values())
+
+
+def _kernel_cell_output(message: str) -> tuple[str, str] | None:
+    decoder = json.JSONDecoder()
+    offset = message.find("{")
+    envelope: dict[str, object] | None = None
+    while offset >= 0:
+        try:
+            candidate, _ = decoder.raw_decode(message[offset:])
+        except json.JSONDecodeError:
+            offset = message.find("{", offset + 1)
+            continue
+        if isinstance(candidate, dict) and candidate.get("id") == "kernelMessage":
+            envelope = candidate
+            break
+        offset = message.find("{", offset + 1)
+
+    event: tuple[str, str] | None = None
+    payload = envelope.get("payload") if envelope is not None else None
+    kernel_text = payload.get("message") if isinstance(payload, dict) else None
+    if isinstance(kernel_text, str):
+        try:
+            kernel_message = json.loads(kernel_text)
+        except json.JSONDecodeError:
+            kernel_message = None
+        if isinstance(kernel_message, dict) and kernel_message.get("op") == "cell-op":
+            data = kernel_message.get("data")
+            if isinstance(data, dict):
+                run_id = data.get("run_id")
+                output = data.get("output")
+                if (
+                    isinstance(run_id, str)
+                    and run_id
+                    and isinstance(output, dict)
+                    and isinstance(output.get("data"), str)
+                ):
+                    event = (run_id, output["data"])
+    return event
+
+
+def _wait_for_live_learning_lab(
     page: Page,
+    console_messages: list[ConsoleRecord],
+) -> None:
+    deadline = time.monotonic() + (TIMEOUT_MS / 1000)
+    while time.monotonic() < deadline:
+        runtime_errors = [
+            f"{severity}: {message}"
+            for severity, message in console_messages
+            if _is_runtime_error(message)
+        ]
+        if runtime_errors:
+            raise BrowserSmokeError(
+                f"learning-lab runtime failed before interaction: {runtime_errors!r}"
+            )
+        if _has_live_learning_lab_evidence(console_messages):
+            return
+        page.wait_for_timeout(500)
+    raise BrowserSmokeError("learning lab never emitted live success, fixture, and table evidence")
+
+
+def _wait_for_recompute(
+    page: ContentTarget,
     action: Callable[[], None],
     expected: Callable[[], None],
 ) -> None:
@@ -55,29 +176,42 @@ def _wait_for_recompute(
 
 def _assert_common_page_contracts(
     page: Page,
-    console_errors: list[str],
+    content: ContentTarget,
+    console_messages: list[ConsoleRecord],
     page_errors: list[str],
+    *,
+    remote: bool,
 ) -> None:
-    if page.locator("h1").count() != 1:
+    if content.locator("h1").count() != 1:
         raise BrowserSmokeError("page must expose exactly one level-one heading")
-    unnamed_tables = page.locator(
+    unnamed_tables = content.locator(
         "table:not([aria-label]):not([aria-labelledby]):not(:has(caption))"
     ).count()
     if unnamed_tables:
         raise BrowserSmokeError(f"page contains {unnamed_tables} unnamed table(s)")
     page.set_viewport_size({"width": 390, "height": 844})
     page.wait_for_timeout(500)
-    if page.evaluate(
+    if content.evaluate(
         "document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"
     ):
         raise BrowserSmokeError("page causes horizontal document overflow at 390px")
-    if console_errors or page_errors:
+
+    console_errors = [
+        f"{severity}: {message}"
+        for severity, message in console_messages
+        if _is_runtime_error(message)
+        or (severity == "error" and not (remote and _is_allowed_remote_noise(message)))
+    ]
+    fatal_page_errors = [
+        message for message in page_errors if not (remote and _is_allowed_remote_noise(message))
+    ]
+    if console_errors or fatal_page_errors:
         raise BrowserSmokeError(
-            f"browser errors: console={console_errors!r}; page={page_errors!r}"
+            f"browser errors: console={console_errors!r}; page={fatal_page_errors!r}"
         )
 
 
-def _exercise_wellness(page: Page) -> None:
+def _exercise_wellness(page: ContentTarget) -> None:
     page.get_by_role("heading", name="Synthetic Wellness Data Pipeline", level=1).wait_for(
         state="visible", timeout=TIMEOUT_MS
     )
@@ -97,7 +231,7 @@ def _exercise_wellness(page: Page) -> None:
     raise BrowserSmokeError("wellness fixture did not react to the seed change")
 
 
-def _exercise_classifier(page: Page) -> None:
+def _exercise_classifier(page: ContentTarget) -> None:
     page.get_by_role("heading", name="Content Performance Classifier", level=1).wait_for(
         state="visible", timeout=TIMEOUT_MS
     )
@@ -120,7 +254,7 @@ def _exercise_classifier(page: Page) -> None:
     ).wait_for(state="visible", timeout=10_000)
 
 
-def _exercise_opportunity(page: Page) -> None:
+def _exercise_opportunity(page: ContentTarget) -> None:
     page.get_by_role(
         "heading",
         name="Public-sector Opportunity Pipeline",
@@ -148,9 +282,12 @@ def _exercise_opportunity(page: Page) -> None:
     raise BrowserSmokeError("opportunity scoring did not react to remote preference")
 
 
-def _exercise_learning_lab(page: Page) -> None:
+def _exercise_learning_lab(page: ContentTarget) -> None:
     page.locator("h1").wait_for(state="visible", timeout=TIMEOUT_MS)
-    page.wait_for_timeout(10_000)
+    page.get_by_text("Success: analysis ready.", exact=True).wait_for(
+        state="visible",
+        timeout=TIMEOUT_MS,
+    )
     seed_label = page.locator("label").filter(has_text="Seed")
     if seed_label.count() != 1 or seed_label.inner_text().strip() != "Seed":
         raise BrowserSmokeError("learning lab must expose one visible Seed label")
@@ -205,7 +342,7 @@ def _exercise_learning_lab(page: Page) -> None:
         raise BrowserSmokeError("invalid seed did not replace fixture identity")
 
 
-SCENARIOS: dict[str, Callable[[Page], None]] = {
+SCENARIOS: dict[str, Callable[[ContentTarget], None]] = {
     "wellness": _exercise_wellness,
     "classifier": _exercise_classifier,
     "opportunity": _exercise_opportunity,
@@ -213,30 +350,71 @@ SCENARIOS: dict[str, Callable[[Page], None]] = {
 }
 
 
-def _exercise(page: Page, url: str, scenario: str) -> None:
-    console_errors: list[str] = []
+def _console_text(message: ConsoleMessage) -> str:
+    """Preserve structured worker payloads that ``message.text`` collapses."""
+
+    rendered_args: list[str] = []
+    for argument in message.args:
+        try:
+            value = argument.json_value()
+        except Exception:
+            value = str(argument)
+        if isinstance(value, (dict, list)):
+            rendered_args.append(json.dumps(value, sort_keys=True, default=str))
+        elif value is not None:
+            rendered_args.append(str(value))
+    return " ".join(rendered_args).strip() or message.text
+
+
+def _remote_content_frame(page: Page) -> Frame:
+    deadline = time.monotonic() + (TIMEOUT_MS / 1000)
+    while time.monotonic() < deadline:
+        for frame in page.frames:
+            if frame == page.main_frame:
+                continue
+            if "entrypoint=" in frame.url and "/e?" in frame.url:
+                return frame
+        page.wait_for_timeout(500)
+    raise BrowserSmokeError("Molab did not expose its embedded Marimo application frame")
+
+
+def _exercise(page: Page, url: str, scenario: str, *, remote: bool = False) -> None:
+    console_messages: list[ConsoleRecord] = []
     page_errors: list[str] = []
 
     def capture_console(message: ConsoleMessage) -> None:
-        if message.type == "error":
-            console_errors.append(message.text)
+        location = message.location
+        source_url = location.get("url", "")
+        console_text = _console_text(message)
+        rendered = f"{console_text} [{source_url}]" if source_url else console_text
+        console_messages.append((message.type, rendered))
 
     page.on("console", capture_console)
     page.on("pageerror", lambda error: page_errors.append(str(error)))
     page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT_MS)
+    content: ContentTarget = _remote_content_frame(page) if remote else page
 
     try:
-        SCENARIOS[scenario](page)
+        if scenario == "learning-labs":
+            _wait_for_live_learning_lab(page, console_messages)
+        SCENARIOS[scenario](content)
     except (BrowserSmokeError, PlaywrightTimeoutError) as error:
         raise BrowserSmokeError(
-            f"{error}; console={console_errors!r}; page={page_errors!r}"
+            f"{error}; console={console_messages!r}; page={page_errors!r}"
         ) from error
-    _assert_common_page_contracts(page, console_errors, page_errors)
+    _assert_common_page_contracts(
+        page,
+        content,
+        console_messages,
+        page_errors,
+        remote=remote,
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("site_root", type=Path)
+    parser.add_argument("site_root", type=Path, nargs="?")
+    parser.add_argument("--url")
     parser.add_argument(
         "--scenario",
         choices=SCENARIOS,
@@ -244,22 +422,38 @@ def main() -> None:
     )
     parser.add_argument("--path", default="")
     args = parser.parse_args()
-    root = args.site_root.resolve()
-    server, base_url = _serve(root)
-    url = f"{base_url}{args.path.lstrip('/')}"
+
+    if (args.site_root is None) == (args.url is None):
+        parser.error("provide exactly one local site_root or --url")
+    if args.url is not None:
+        parsed_url = urlparse(args.url)
+        if parsed_url.scheme != "https" or not parsed_url.netloc:
+            parser.error("--url must be an absolute HTTPS URL")
+        if args.path:
+            parser.error("--path is only valid with a local site_root")
+        server = None
+        url = args.url
+        remote = True
+    else:
+        root = args.site_root.resolve()
+        server, base_url = _serve(root)
+        url = f"{base_url}{args.path.lstrip('/')}"
+        remote = False
+
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             try:
                 page = browser.new_page(viewport={"width": 1440, "height": 900})
                 page.emulate_media(reduced_motion="reduce")
-                _exercise(page, url, args.scenario)
+                _exercise(page, url, args.scenario, remote=remote)
             finally:
                 browser.close()
     finally:
-        with contextlib.suppress(Exception):
-            server.shutdown()
-            server.server_close()
+        if server is not None:
+            with contextlib.suppress(Exception):
+                server.shutdown()
+                server.server_close()
     print(f"browser interaction smoke passed: {args.scenario}")
 
 

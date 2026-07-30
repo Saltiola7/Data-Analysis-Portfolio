@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import importlib.util
+import json
 import re
 import textwrap
 from pathlib import Path
@@ -11,6 +13,8 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 APPS_ROOT = PROJECT_ROOT / "apps"
 PACKAGE_ROOT = PROJECT_ROOT / "analytics_learning_labs"
+BROWSER_WHEEL_LOCK = PROJECT_ROOT / "browser-wheel-lock.json"
+BROWSER_WHEELS_ROOT = PROJECT_ROOT / "browser_wheels"
 APP_FILES = (
     "airline_delays.py",
     "synthetic_cohort.py",
@@ -22,6 +26,10 @@ APP_FILES = (
 
 def _app_source(app_name: str) -> str:
     return (APPS_ROOT / app_name).read_text(encoding="utf-8")
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes(), usedforsecurity=False).hexdigest()
 
 
 def _markdown_literals(tree: ast.AST) -> list[str]:
@@ -59,6 +67,41 @@ def _seed_labels(tree: ast.AST) -> list[str]:
 def test_exactly_five_declared_marimo_apps_exist() -> None:
     actual = {path.name for path in APPS_ROOT.glob("*.py") if path.name != "__init__.py"}
     assert actual == set(APP_FILES)
+
+
+def test_molab_entrypoints_have_immutable_browser_package_dependency() -> None:
+    lock = json.loads(BROWSER_WHEEL_LOCK.read_text(encoding="utf-8"))
+    source_commit = lock["source_commit"]
+    wheel_sha256 = lock["wheel_sha256"]
+    filename = lock["filename"]
+    wheel = BROWSER_WHEELS_ROOT / filename
+    expected_url = (
+        "https://raw.githubusercontent.com/Saltiola7/data-portfolio/"
+        f"{source_commit}/projects/analytics-learning-labs/browser_wheels/{filename}"
+    )
+    expected_requirement = f"analytics-learning-labs @ {expected_url}#sha256={wheel_sha256}"
+
+    assert lock["schema_version"] == 1
+    assert lock["distribution"] == "analytics-learning-labs"
+    assert lock["version"] == "0.1.0"
+    assert re.fullmatch(r"[0-9a-f]{40}", source_commit)
+    assert re.fullmatch(r"[0-9a-f]{64}", lock["source_tree_sha256"])
+    assert re.fullmatch(r"[0-9a-f]{64}", wheel_sha256)
+    assert lock["url"] == expected_url
+    assert lock["requirement"] == expected_requirement
+    assert wheel.is_file()
+    assert _sha256(wheel) == wheel_sha256
+
+    for app_name in APP_FILES:
+        source = _app_source(app_name)
+        tree = ast.parse(source)
+        local_imports = {
+            node.module.split(".", 1)[0]
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module
+        }
+        assert "analytics_learning_labs" in local_imports
+        assert source.count(f'#     "{expected_requirement}",') == 1
 
 
 @pytest.mark.parametrize("app_name", APP_FILES)

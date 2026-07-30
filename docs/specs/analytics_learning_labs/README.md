@@ -40,6 +40,8 @@ Applicable DBSCTR modules: Python, Security, Data, Analytics, and Web.
 | public credential image | Owner-approved issuer certificate carrying public professional identity and verification ID |
 | synthetic fixture | Deterministic fictional data with no person, client, employer, course, or licensed-dataset record |
 | evidence gate | Automated or reviewed proof that source, execution, claims, provenance, privacy, and browser behavior pass |
+| browser package artifact | Pure-Python wheel built from the reviewed shared package and fetchable by Pyodide without a local checkout |
+| dependency anchor | Immutable 40-character repository commit embedded in an app's PEP 723 wheel URL |
 
 Entities:
 
@@ -48,6 +50,8 @@ Entities:
 - `AnalysisResult`, identified by lab, fixture identity, and analysis version
 - `SourceLineage`, identified by private source name and public successor
 - `MolabRuntime`, identified by repository commit and app path
+- `BrowserPackageArtifact`, identified by distribution name, version, wheel
+  hash, source-tree hash, and immutable repository URL
 - `PublicCredential`, identified by issuer, credential ID, image hash, and official verification URL
 
 Private sources remain evidence for admission decisions, not public dependencies
@@ -69,6 +73,7 @@ flowchart LR
     SOURCE["New Marimo app, analysis code, tests, and prose"]
     GATES["Privacy, provenance, execution, WASM, and browser gates"]
     GITHUB["Canonical GitHub source"]
+    WHEEL["Immutable browser package wheel"]
     MOLAB["On-demand Molab /wasm runtime"]
 
     PRIVATE --> AUDIT
@@ -79,7 +84,9 @@ flowchart LR
     FIXTURE --> GATES
     SOURCE --> GATES
     GATES --> GITHUB
+    GITHUB --> WHEEL
     GITHUB --> MOLAB
+    WHEEL --> MOLAB
 ```
 
 | Concern | Decision |
@@ -99,8 +106,11 @@ records, broken converted code, or unsupported conclusions?
 **Text equivalent:** Private historical notebooks and certification files are
 read only during a local audit. Only a general theme or competency may cross the
 clean-room boundary. Every public lab receives newly written code, synthetic
-fixtures, tests, prose, and conclusions. Privacy, provenance, execution, WASM,
-and browser gates must pass before canonical GitHub source gains a Molab link.
+fixtures, tests, prose, and conclusions. The reviewed shared package is also
+built as a pure-Python wheel anchored to an immutable repository commit so
+Molab can install it without a local checkout. Privacy, provenance, execution,
+WASM, and browser gates must pass before canonical GitHub source gains a Molab
+link.
 
 Canonical source: this specification. Owner: repository owner. Change trigger:
 source-admission, fixture, schema, app, validation, or delivery boundaries
@@ -121,6 +131,21 @@ Given a visitor opens any learning-lab Molab runtime without credentials,
 uploads, or private infrastructure, when the app starts, then a deterministic
 synthetic fixture produces a useful analysis, visible source identity, and no
 failed cell.
+
+### Install the shared package without a local checkout
+
+Given Molab fetches one app source file from GitHub and does not clone the
+repository, when Pyodide resolves the app's PEP 723 dependencies, then it
+installs the reviewed `analytics_learning_labs` wheel from an immutable
+40-character commit URL before the setup cell imports the package.
+
+### Reject a shell-only Molab response
+
+Given a Molab route returns HTTP 200 but a setup cell fails, when the public
+deployment gate runs, then the route fails admission unless the expected
+numeric Seed control, success state, fixture identity, primary table, and
+reactive seed change are all observed without application page or console
+errors.
 
 ### React without retaining visitor state
 
@@ -195,6 +220,7 @@ projects/analytics-learning-labs/
 ├── .marimo.toml
 ├── README.md
 ├── PROVENANCE.md
+├── browser-wheel-lock.json
 ├── pyproject.toml
 ├── uv.lock
 ├── apps/
@@ -209,6 +235,8 @@ projects/analytics-learning-labs/
 │   ├── contracts.py
 │   ├── fixtures.py
 │   └── presentation.py
+├── browser_wheels/
+│   └── analytics_learning_labs-0.1.0-py3-none-any.whl
 └── tests/
     ├── test_analysis.py
     ├── test_apps.py
@@ -286,7 +314,8 @@ dataset.
 Every app:
 
 1. carries PEP 723 dependencies for Marimo 0.23.15 and pandas 3.0.2,
-   matching the project lock and resolved Pyodide browser package;
+   plus the exact immutable browser-wheel requirement recorded in
+   `browser-wheel-lock.json`;
 2. exposes exactly one level-one heading and one visible `label[for]`-associated
    integer seed control; Marimo 0.23.15's generated raw-markup `aria-label`
    remains a documented accessibility limitation;
@@ -296,7 +325,39 @@ Every app:
 5. exposes success, validation, and unexpected-error semantics without color
    alone; Marimo supplies its native pending-cell indicator during recomputation;
 6. recomputes visibly after a seed change;
-7. performs no owner-side persistence, logging, or remote request.
+7. performs no owner-side persistence or logging; its only application-owned
+   runtime request is the hash-pinned wheel fetch declared in PEP 723.
+
+### Browser wheel lock interface
+
+`browser-wheel-lock.json` is the single machine-readable authority for the
+shared package artifact:
+
+```json
+{
+  "schema_version": 1,
+  "distribution": "analytics-learning-labs",
+  "version": "0.1.0",
+  "filename": "analytics_learning_labs-0.1.0-py3-none-any.whl",
+  "source_commit": "<40 lowercase hexadecimal characters>",
+  "source_tree_sha256": "<64 lowercase hexadecimal characters>",
+  "wheel_sha256": "<64 lowercase hexadecimal characters>",
+  "url": "https://raw.githubusercontent.com/Saltiola7/data-portfolio/<source_commit>/projects/analytics-learning-labs/browser_wheels/<filename>",
+  "requirement": "analytics-learning-labs @ <url>#sha256=<wheel_sha256>"
+}
+```
+
+The wheel commit contains the exact package source used to build the artifact.
+Every app repeats `requirement` byte-for-byte in its PEP 723 dependencies so a
+single-file Molab fetch remains import-closed. The anchor is never `main`, a
+tag, a feature branch, an abbreviated hash, a local path, or `git+https`.
+
+`scripts/verify_browser_wheel.py` validates the lock schema, hashes the
+canonical package tree, requires the working wheel to equal the wheel blob at
+`source_commit`, opens the wheel, rejects duplicate members, compares every
+packaged Python file with source at that commit, constrains dependency metadata,
+verifies every RECORD hash and size, rejects unexpected executable or
+private-path content, and confirms all five app requirements match the lock.
 
 ### Credential evidence interface
 
@@ -323,10 +384,14 @@ https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analy
 ```
 
 Pre-merge verification uses the pushed 40-character commit SHA because
-slash-named feature branches are ambiguous in Molab routes. CI installs one
-locked learning-lab environment, checks all five apps strictly, executes each
-WASM export, validates the local package wheel and exact pandas 3.0.2 browser
-resolution, and runs one Chromium journey per app.
+slash-named feature branches are ambiguous in Molab routes. The browser smoke
+accepts either a local export root or one explicit HTTPS `--url`. Remote mode
+captures every console message, rejects Python exception markers regardless of
+console severity, tolerates only enumerated Molab telemetry noise, and requires
+the visible success state, fixture identity, primary table, and seed
+recomputation. CI installs one locked learning-lab environment, checks all five
+apps strictly, executes each local WASM export, validates the browser wheel and
+exact pandas 3.0.2 browser resolution, and runs one Chromium journey per app.
 
 ### Ownership and dependency order
 
@@ -435,23 +500,50 @@ of the private assessment implementation.
    local package named `analytics_learning_labs`.
 2. Runtime dependencies are direct, version-constrained, and compatible with
    Pyodide. No application imports another portfolio project or private module.
-3. Each executed WASM export contains exactly one wheel for the local package
-   and imports it successfully in Chromium.
-4. The root dependency inventory names every direct dependency, its purpose,
+3. The committed browser wheel is a pure-Python `py3-none-any` artifact built
+   from the reviewed `analytics_learning_labs` source. Its filename, version,
+   wheel SHA-256, source-tree SHA-256, and immutable source commit match
+   `browser-wheel-lock.json`.
+4. The lock URL belongs to `Saltiola7/data-portfolio`, uses a full lowercase
+   40-character commit, names the committed wheel exactly, and ends with a
+   `#sha256=` fragment in the PEP 508 requirement. Redirecting to a mutable
+   branch, tag, package index, local path, or VCS installer fails validation.
+5. Every app that imports `analytics_learning_labs` declares the lock's exact
+   PEP 508 requirement in PEP 723. A repository-local import without a matching
+   browser-installable dependency fails before export.
+6. Each executed WASM export contains exactly one importable wheel for the
+   shared package and imports it successfully in Chromium.
+7. The root dependency inventory names every direct dependency, its purpose,
    license, lock source, and browser/WASM boundary.
 
 ### CI, Molab, and deployment-preview evidence
 
 1. CI checks all five app paths explicitly or derives them from one committed
    registry; a partial loop is a failure.
-2. CI runs unit tests, Ruff, strict Marimo checks, executed HTML-WASM export,
-   local-wheel validation, and a Chromium journey for every app.
+2. CI runs unit tests, Ruff, strict Marimo checks, browser-wheel/source parity,
+   executed HTML-WASM export, package validation, and a Chromium journey for
+   every app.
 3. Durable README links use `blob/main`. Pre-merge Molab checks use the exact
    pushed 40-character commit SHA and do not mutate remote state.
-4. Before push, executed local WASM plus Chromium is deployment-preview
+4. A local export that discovers and bundles the checkout package does not
+   prove direct Molab import closure. The remote gate loads the exact public
+   URL and treats HTTP 200 as transport evidence only.
+5. Remote smoke observes every console severity and fails on
+   `ModuleNotFoundError`, `No module named`, `Traceback`,
+   `MarimoExceptionRaisedError`, `CellNotInitializedError`, `Ancestor raised`,
+   or any unallowlisted page or console error.
+6. Each remote app must expose `Success: analysis ready.`, fixture identity,
+   one primary table, and a numeric Seed control whose change updates both
+   fixture identity and table evidence under pandas 3.0.2.
+7. Before push, executed local WASM plus Chromium is deployment-preview
    evidence, not proof of public Molab availability.
-5. After push, public verification records the immutable commit URL and treats
-   an unavailable or erroring Molab route as a failed Deploy gate.
+8. After push, public verification records every immutable app URL and treats
+   an unavailable, shell-only, non-reactive, or erroring route as a failed
+   Deploy gate. After merge, the same journey passes through each durable
+   `blob/main` link before recruiter-facing use.
+9. Cycle-scoped immutable URL observations are retained in
+   `PORT-PUB-014.deploy.json` and link to the corresponding Gate Ledger
+   evidence record.
 
 ### Provenance, migration, and rollback
 
@@ -481,8 +573,10 @@ uv sync --locked --project projects/analytics-learning-labs
 (cd projects/analytics-learning-labs && uv run --frozen ruff check .)
 (cd projects/analytics-learning-labs && uv run --frozen ruff format --check .)
 (cd projects/analytics-learning-labs && uv run --frozen marimo check --strict apps/*.py)
+uv run --frozen python scripts/verify_browser_wheel.py
 uv run --frozen python scripts/validate_wasm_export.py <export-dir> --package analytics_learning_labs --dependency pandas==3.0.2
 uv run --frozen python scripts/browser_smoke.py <preview-root> --scenario learning-labs --path <app-path>
+uv run --frozen python scripts/browser_smoke.py --url <immutable-molab-url> --scenario learning-labs
 uv run --frozen pytest -q tests/test_repository_only_portfolio.py
 ```
 
