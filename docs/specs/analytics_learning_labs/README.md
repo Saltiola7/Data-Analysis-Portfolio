@@ -353,9 +353,11 @@ single-file Molab fetch remains import-closed. The anchor is never `main`, a
 tag, a feature branch, an abbreviated hash, a local path, or `git+https`.
 
 `scripts/verify_browser_wheel.py` validates the lock schema, hashes the
-canonical package tree, opens the wheel, compares every packaged Python file
-with source at `source_commit`, rejects unexpected executable or private-path
-content, and confirms all five app requirements match the lock.
+canonical package tree, requires the working wheel to equal the wheel blob at
+`source_commit`, opens the wheel, rejects duplicate members, compares every
+packaged Python file with source at that commit, constrains dependency metadata,
+verifies every RECORD hash and size, rejects unexpected executable or
+private-path content, and confirms all five app requirements match the lock.
 
 ### Credential evidence interface
 

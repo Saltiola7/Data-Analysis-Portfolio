@@ -22,7 +22,7 @@ SPDX JSON software bill of materials for each validated CI build.
 | `wellness_data_pipeline` | Synthetic Wellness Data Pipeline | MIT | Exactly one local wheel is embedded and validated in its executed WASM export |
 | `content_performance_classifier` | Content Performance Classifier | MIT | Exactly one local wheel is embedded and validated in its executed WASM export |
 | `public_sector_opportunity_pipeline` | Public-sector Opportunity Pipeline | MIT | Exactly one local wheel is embedded and validated in its executed WASM export |
-| `analytics_learning_labs` | Five Analytics Learning Labs | MIT | Exactly one shared local wheel is embedded and validated in every learning-lab WASM export |
+| `analytics_learning_labs` | Five Analytics Learning Labs | MIT | Direct Molab routes install one deterministic wheel pinned to an immutable commit and SHA-256; CI also verifies source, metadata, RECORD, and local-export parity |
 
 ## Direct development and validation dependencies
 

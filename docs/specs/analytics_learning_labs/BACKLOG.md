@@ -8,12 +8,11 @@ last_updated: 2026-07-30
 
 | id | title | priority | status | depends_on | owns | reads | parallel_safe | reason | effort | validation |
 |---|---|---|---|---|---|---|---|---|---|---|
-| LAB-009 | Repair direct Molab package installation | P0 | in_progress | LAB-008 | immutable wheel, PEP 723 anchors, remote runtime gate | shared package, five apps, deployment evidence | no | Direct Molab routes fail because a GitHub file preview has no local package checkout | M | all five public runtimes import, render, and recompute |
-
 ## Completed
 
 | id | outcome | completed | commit |
 |---|---|---|---|
+| LAB-009 | Direct Molab package installation repaired with immutable wheel and live-run browser gates | 2026-07-30 | `cffe59b` |
 | LAB-001 | Domain, trust boundary, behaviors, schemas, and contracts approved | 2026-07-30 | `19a8757` |
 | LAB-002 | Two hash-bound credential screenshots published without assessment material | 2026-07-30 | `19a8757` |
 | LAB-003 | Airline Delay Quality Lab delivered with completed-flight denominators | 2026-07-30 | `19a8757` |
