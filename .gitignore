@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.env.*
+!.env.example
+.marimo/
+.pytest_cache/
+.ruff_cache/
+.venv/
+dist/
+node_modules/
+output/
+sensitive/
+

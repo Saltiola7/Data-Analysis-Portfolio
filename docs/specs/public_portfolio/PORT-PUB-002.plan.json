@@ -1,0 +1,25 @@
+{
+  "profile": "docs/specs/public_portfolio/README.md",
+  "gates": {
+    "domain": {"applicability": "required"},
+    "behavior": {"applicability": "required"},
+    "spec": {"applicability": "required"},
+    "contract": {"applicability": "required"},
+    "test_driven_implementation": {"applicability": "required"},
+    "refactor": {"applicability": "required"},
+    "review_integrate": {"applicability": "required"},
+    "release": {
+      "applicability": "not_applicable",
+      "reason": "This cycle builds local clean-root projects without publishing a release."
+    },
+    "deploy": {
+      "applicability": "not_applicable",
+      "reason": "Public Pages and Molab changes belong to the later approved release cycle."
+    },
+    "operate": {
+      "applicability": "not_applicable",
+      "reason": "The local deterministic build creates no owner-operated service."
+    },
+    "maintain_retire": {"applicability": "required"}
+  }
+}
