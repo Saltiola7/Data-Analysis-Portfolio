@@ -13,7 +13,7 @@ from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlparse
 
-from playwright.sync_api import ConsoleMessage, Frame, Page, sync_playwright
+from playwright.sync_api import ConsoleMessage, Frame, Locator, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 TIMEOUT_MS = 180_000
@@ -174,6 +174,13 @@ def _wait_for_recompute(
     raise BrowserSmokeError("WASM worker did not complete the expected recomputation")
 
 
+def _wellness_seed_input(page: ContentTarget) -> Locator:
+    seed = page.locator('input[inputmode="numeric"]')
+    if seed.count() != 1:
+        raise BrowserSmokeError("wellness app must expose one numeric seed input")
+    return seed
+
+
 def _assert_common_page_contracts(
     page: Page,
     content: ContentTarget,
@@ -216,7 +223,7 @@ def _exercise_wellness(page: ContentTarget) -> None:
         state="visible", timeout=TIMEOUT_MS
     )
     page.wait_for_timeout(10_000)
-    seed = page.get_by_role("textbox").first
+    seed = _wellness_seed_input(page)
     table = page.get_by_role("table").first
     table.wait_for(state="visible", timeout=TIMEOUT_MS)
     before = table.inner_text()
