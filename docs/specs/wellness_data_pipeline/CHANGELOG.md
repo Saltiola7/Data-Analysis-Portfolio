@@ -10,3 +10,14 @@ title: Synthetic Wellness Data Pipeline Changelog
 - Added unit normalization, rejected-record, idempotency, and join-cardinality
   contracts.
 - Prohibited certification assessment material and private data.
+
+## 2026-07-29 - Local MVP
+
+- Added deterministic synthetic fixtures, validation, normalization,
+  participant-day aggregation, rejected-record evidence, and canonical hashes.
+- Added a Marimo explorer with bounded in-memory CSV uploads and explicit
+  downloads.
+- Added fail-closed UTF-8 parsing, a 10,000-row input limit, and
+  spreadsheet-formula-safe CSV serialization after security review.
+- Locked the Python environment and passed 33 focused tests, curated Ruff
+  checks, strict Marimo validation, and executable HTML export.

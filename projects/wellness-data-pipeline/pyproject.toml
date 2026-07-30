@@ -1,0 +1,32 @@
+[project]
+name = "wellness-data-pipeline"
+version = "0.1.0"
+description = "Deterministic synthetic wellness data pipeline and Marimo explorer"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "marimo>=0.18.4",
+    "pandas>=2.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.11",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 99
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "S", "UP", "RUF", "PL", "FURB"]
+
+[tool.ruff.lint.per-file-ignores]
+"app.py" = ["B018"]
+"tests/**" = ["PLR2004", "S101"]
+"wellness_data_pipeline/synthetic.py" = ["S311"]

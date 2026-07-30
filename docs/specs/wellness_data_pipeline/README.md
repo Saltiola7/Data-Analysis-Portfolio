@@ -128,6 +128,15 @@ def normalize_duration(value: object, unit: object) -> float: ...
 def normalize_dose_mg(value: object, unit: object) -> float: ...
 
 def audit_to_json(result: PipelineResult) -> str: ...
+
+def read_csv_upload(
+    payload: bytes,
+    *,
+    max_bytes: int = 2_000_000,
+    max_rows: int = 10_000,
+) -> pandas.DataFrame: ...
+
+def dataframe_to_safe_csv(frame: pandas.DataFrame) -> str: ...
 ```
 
 `PipelineResult` contains `participant_days`, `rejected_records`, and `audit`.
@@ -141,6 +150,9 @@ bounded upload paths, shows quality evidence, and offers explicit downloads.
 
 - Inputs are copied before transformation.
 - Required fields are checked before row processing.
+- Each input table is limited to 10,000 data rows.
+- Interactive uploads must be nonempty, valid UTF-8 CSV files no larger than
+  2 MB and 10,000 data rows.
 - Dates use ISO calendar dates and invalid values are rejected.
 - Participant IDs and event IDs are nonempty strings.
 - Duplicate participants and intervention IDs are rejected deterministically.
@@ -151,6 +163,8 @@ bounded upload paths, shows quality evidence, and offers explicit downloads.
 - Supported dose units: `mcg`, `ug`, `mg`, `g`.
 - Curated output is sorted by participant and date.
 - Rejected details never contain raw credentials or unrestricted payload dumps.
+- CSV downloads prefix string cells beginning with spreadsheet formula control
+  characters while leaving numeric negative values unchanged.
 - Audit hashes use canonical CSV serialization and SHA-256.
 - Synthetic generation uses a fixed seed and records generator version.
 - No personal or certification-assessment data enters fixtures or snapshots.
