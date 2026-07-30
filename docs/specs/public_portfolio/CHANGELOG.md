@@ -51,3 +51,27 @@ title: Public Engineering Portfolio Changelog
 - Preserved all project tests, strict Marimo checks, ephemeral WASM builds,
   Chromium journeys, vulnerability scanning, and SBOM generation in CI.
 - Added direct Molab `/wasm` links for all three repository flagships.
+
+## 2026-07-30 - Analytics learning labs and credential evidence
+
+- Added five independently written, deterministic synthetic Marimo learning
+  labs below the three flagships: airline delay quality, health-risk quality,
+  restaurant-location quality, streaming catalog, and judo outcomes.
+- Added exact owner-approved DataCamp Data Scientist and Data Engineer
+  credential screenshots with checksums, visible-content review, metadata
+  review, and official verification links.
+- Withheld all assessment prompts, datasets, solutions, schemas, outputs,
+  grader rules, and raw historical notebook source.
+- Added a shared locked package, 125 focused tests, strict Marimo checks,
+  executed WASM validation, local-wheel inspection, live pandas-version
+  evidence, valid/invalid seed browser journeys, and 390px reflow checks.
+- Revalidated the three flagships: 127 focused tests, three executed WASM
+  exports, and three Chromium journeys.
+- Recorded one known upstream limitation: Marimo 0.23.15 associates the visible
+  `Seed` label correctly but emits rendered markup in the generated
+  `aria-label`; WCAG 2.2 AA remains a target, not claimed conformance.
+- No gate exception or versioned release applies. GitHub Pages remains retired;
+  delivery targets the existing draft pull request on
+  `dbsctr/public_portfolio/PORT-PUB-009`, with immutable-SHA Molab verification
+  after publication.
+- Implementation commit: `19a8757`.
