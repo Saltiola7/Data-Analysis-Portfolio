@@ -1,0 +1,42 @@
+[project]
+name = "analytics-learning-labs"
+version = "0.1.0"
+description = "Five deterministic synthetic analytics learning labs for Marimo"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "marimo==0.23.15",
+    "pandas==3.0.2",
+]
+
+[dependency-groups]
+build = [
+    "hatchling==1.31.0",
+]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.16.0",
+]
+
+[build-system]
+requires = ["hatchling==1.31.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["analytics_learning_labs"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 99
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E4", "E7", "E9", "F", "FURB", "I", "PL", "RUF", "S", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"analytics_learning_labs/fixtures.py" = ["S311"]
+"analytics_learning_labs/presentation.py" = ["PLR0913"]
+"apps/*.py" = ["B018", "PLR1711"]
+"tests/**" = ["PLR2004", "S101"]

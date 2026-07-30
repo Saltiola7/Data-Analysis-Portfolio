@@ -16,6 +16,10 @@ third-party repository source.
 
 `generate_synthetic_sources()` creates every source row in memory from:
 
+- owner: Tommi Saltiola
+- source license: repository MIT license
+- generation timing: on demand; no generated dataset is committed
+- admission review date: `2026-07-29`
 - a caller-visible integer seed;
 - hand-authored fictional organizations and opportunity descriptions;
 - deterministic Python standard-library generation.
@@ -55,3 +59,14 @@ Exact resolved artifacts are recorded in `uv.lock`.
 Source is intended for an MIT-licensed public portfolio. GitHub remains
 canonical. Molab or generated HTML previews are derived runtimes and must not
 introduce private data or credentials.
+
+## Privacy and retention
+
+Fixture privacy classification is public synthetic data. No visitor upload or
+personal record enters this project. Generated source, canonical, rejected, and
+state rows exist only in active memory or explicit visitor downloads; an owner
+backend does not collect or retain them.
+
+The retained authority is generator and adapter source, contracts, tests,
+hashes, lockfile, and this record. If lineage or privacy cannot be reproduced,
+the public demo link is removed until replacement evidence passes review.

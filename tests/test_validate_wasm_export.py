@@ -8,12 +8,17 @@ import pytest
 from scripts.validate_wasm_export import ExportValidationError, validate_export
 
 
-def _write_wheel(root: Path, package: str, member: str | None = None) -> None:
+def _write_wheel(
+    root: Path,
+    package: str,
+    member: str | None = None,
+    content: str = "",
+) -> None:
     wheels = root / "public" / "wheels"
     wheels.mkdir(parents=True)
     wheel = wheels / f"{package}-0.1.0-py3-none-any.whl"
     with zipfile.ZipFile(wheel, "w") as archive:
-        archive.writestr(member or f"{package}/__init__.py", "")
+        archive.writestr(member or f"{package}/__init__.py", content)
 
 
 def test_accepts_one_importable_local_package_wheel(tmp_path: Path) -> None:
@@ -31,7 +36,8 @@ def test_accepts_one_importable_local_package_wheel(tmp_path: Path) -> None:
     ("file_name", "content"),
     [
         ("index.html", "MarimoExceptionRaisedError"),
-        ("state.json", "/Users/private/repository"),
+        ("state.json", "/" + "Users/private/repository"),
+        ("worker.py", "ModuleNotFoundError"),
         ("worker.py", "Traceback (most recent call last)"),
     ],
 )
@@ -60,6 +66,24 @@ def test_rejects_malformed_src_layout_wheel(tmp_path: Path) -> None:
         validate_export(tmp_path, "example_package")
 
 
+@pytest.mark.parametrize(
+    "content",
+    [
+        'SOURCE = "' + "/" + 'Users/private/repository"',
+        'raise RuntimeError("ModuleNotFoundError")',
+    ],
+)
+def test_rejects_private_or_error_evidence_inside_local_wheel(
+    tmp_path: Path,
+    content: str,
+) -> None:
+    (tmp_path / "index.html").write_text("<h1>Safe export</h1>", encoding="utf-8")
+    _write_wheel(tmp_path, "example_package", content=content)
+
+    with pytest.raises(ExportValidationError):
+        validate_export(tmp_path, "example_package")
+
+
 def test_rejects_missing_or_duplicate_package_wheels(tmp_path: Path) -> None:
     (tmp_path / "index.html").write_text("<h1>Safe export</h1>", encoding="utf-8")
 
@@ -73,3 +97,43 @@ def test_rejects_missing_or_duplicate_package_wheels(tmp_path: Path) -> None:
 
     with pytest.raises(ExportValidationError, match="exactly one"):
         validate_export(tmp_path, "example_package")
+
+
+def test_requires_declared_resolved_browser_dependencies(tmp_path: Path) -> None:
+    index = tmp_path / "index.html"
+    index.write_text("<h1>Safe export</h1>", encoding="utf-8")
+    _write_wheel(tmp_path, "example_package")
+
+    with pytest.raises(ExportValidationError, match="requested dependency"):
+        validate_export(
+            tmp_path,
+            "example_package",
+            expected_dependencies=("pandas==3.0.2",),
+        )
+
+    index.write_text(
+        '<h1>Safe export</h1><script type="application/json">'
+        '{"notebookCode":"dependencies = [\\"pandas==3.0.2\\"]"}</script>',
+        encoding="utf-8",
+    )
+    validate_export(
+        tmp_path,
+        "example_package",
+        expected_dependencies=("pandas==3.0.2",),
+    )
+
+
+def test_dependency_validation_rejects_near_version_substrings(tmp_path: Path) -> None:
+    (tmp_path / "index.html").write_text(
+        '<script type="application/json">'
+        '{"notebookCode":"dependencies = [\\"pandas==3.0.20\\"]"}</script>',
+        encoding="utf-8",
+    )
+    _write_wheel(tmp_path, "example_package")
+
+    with pytest.raises(ExportValidationError, match="requested dependency"):
+        validate_export(
+            tmp_path,
+            "example_package",
+            expected_dependencies=("pandas==3.0.2",),
+        )

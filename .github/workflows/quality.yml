@@ -34,6 +34,7 @@ jobs:
           uv sync --project projects/wellness-data-pipeline --locked
           uv sync --project projects/content-performance-classifier --locked
           uv sync --project projects/public-sector-opportunity-pipeline --locked
+          uv sync --project projects/analytics-learning-labs --locked
 
       - name: Validate release tools
         run: |
@@ -64,6 +65,19 @@ jobs:
           uv run --frozen ruff check .
           uv run --frozen ruff format --check .
           uv run --frozen marimo check --strict app.py
+
+      - name: Validate analytics learning labs
+        run: |
+          cd projects/analytics-learning-labs
+          uv run --frozen pytest -q
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+          uv run --frozen marimo check --strict \
+            apps/airline_delays.py \
+            apps/synthetic_cohort.py \
+            apps/restaurant_locations.py \
+            apps/streaming_catalog.py \
+            apps/sports_outcomes.py
 
       - name: Validate reproducible static previews
         run: |
@@ -143,6 +157,61 @@ jobs:
             "${RUNNER_TEMP}/site/apps/public-sector-opportunity-pipeline" \
             --package public_sector_opportunity_pipeline
 
+          (
+            cd projects/analytics-learning-labs
+            uv run --frozen marimo export html-wasm apps/airline_delays.py \
+              --output "${RUNNER_TEMP}/site/apps/analytics-learning-labs/airline-delays" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/analytics-learning-labs/airline-delays" \
+            --package analytics_learning_labs \
+            --dependency pandas==3.0.2
+
+          (
+            cd projects/analytics-learning-labs
+            uv run --frozen marimo export html-wasm apps/synthetic_cohort.py \
+              --output "${RUNNER_TEMP}/site/apps/analytics-learning-labs/synthetic-cohort" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/analytics-learning-labs/synthetic-cohort" \
+            --package analytics_learning_labs \
+            --dependency pandas==3.0.2
+
+          (
+            cd projects/analytics-learning-labs
+            uv run --frozen marimo export html-wasm apps/restaurant_locations.py \
+              --output "${RUNNER_TEMP}/site/apps/analytics-learning-labs/restaurant-locations" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/analytics-learning-labs/restaurant-locations" \
+            --package analytics_learning_labs \
+            --dependency pandas==3.0.2
+
+          (
+            cd projects/analytics-learning-labs
+            uv run --frozen marimo export html-wasm apps/streaming_catalog.py \
+              --output "${RUNNER_TEMP}/site/apps/analytics-learning-labs/streaming-catalog" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/analytics-learning-labs/streaming-catalog" \
+            --package analytics_learning_labs \
+            --dependency pandas==3.0.2
+
+          (
+            cd projects/analytics-learning-labs
+            uv run --frozen marimo export html-wasm apps/sports_outcomes.py \
+              --output "${RUNNER_TEMP}/site/apps/analytics-learning-labs/sports-outcomes" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/analytics-learning-labs/sports-outcomes" \
+            --package analytics_learning_labs \
+            --dependency pandas==3.0.2
+
       - name: Exercise release in Chromium
         run: |
           uv run --frozen playwright install --with-deps chromium
@@ -152,6 +221,16 @@ jobs:
             --scenario classifier --path apps/content-performance-classifier/
           uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
             --scenario opportunity --path apps/public-sector-opportunity-pipeline/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario learning-labs --path apps/analytics-learning-labs/airline-delays/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario learning-labs --path apps/analytics-learning-labs/synthetic-cohort/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario learning-labs --path apps/analytics-learning-labs/restaurant-locations/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario learning-labs --path apps/analytics-learning-labs/streaming-catalog/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario learning-labs --path apps/analytics-learning-labs/sports-outcomes/
 
       - name: Scan critical vulnerabilities
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0

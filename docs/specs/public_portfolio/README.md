@@ -23,7 +23,7 @@ product_intent: docs/specs/public_portfolio/PRODUCT.md
 | Package authority | `pyproject.toml` and `uv.lock` |
 | Public data | Synthetic or explicitly redistributable only |
 | Browser delivery | GitHub-backed Molab `/wasm` links |
-| Accessibility | WCAG 2.2 AA |
+| Accessibility | WCAG 2.2 AA target; automated semantic and 390px reflow gates plus manual review |
 | Validation | pytest, Ruff, strict Marimo check, temporary WASM export, browser review, privacy and provenance audits |
 | Security owner | Repository owner |
 | Recovery owner | Repository owner through private recovery bundle and local refs |
@@ -179,7 +179,9 @@ synthetic and historical-learning context.
 - The root README links the canonical GitHub repository and each admitted
   flagship's GitHub-backed Molab `/wasm` runtime.
 - User-uploaded data and BYOK credentials are runtime-only.
-- Browser demos expose loading, empty, success, validation, and error states.
+- Browser demos expose success, validation, and unexpected-error states in
+  text. Marimo supplies the pending-cell indicator during recomputation;
+  projects with user-supplied collections also expose an explicit empty state.
 - Public integration identifies source SHA, rollback ref, compatibility, and
   CI health.
 
@@ -238,6 +240,6 @@ source-identity checks.
 | Refactor | required | Coherent source and current documentation |
 | Review/Integrate | required | Traceability, compatibility, and affected scope reviewed |
 | Release | not applicable | Draft pull request creates no versioned release |
-| Deploy | required | Pages stays disabled and public route returns not found |
+| Deploy | required | Pages stays disabled; immutable-SHA Molab routes load and execute |
 | Operate | not applicable | No running owner service |
 | Maintain/Retire | required | Support, dependency, data, and retirement obligations documented |

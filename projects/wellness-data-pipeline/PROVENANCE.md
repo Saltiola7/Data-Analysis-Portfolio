@@ -17,6 +17,10 @@ repository.
 
 All bundled records come from `generate_synthetic_fixture`.
 
+- owner: Tommi Saltiola
+- source license: repository MIT license
+- generation timing: on demand; no generated dataset is committed
+- admission review date: `2026-07-29`
 - generator version: `wellness-synthetic-v1`
 - default seed: `2026`
 - generator: Python standard-library pseudorandom number generator
@@ -40,3 +44,15 @@ after explicit user action.
 Identical inputs and schema version produce identical curated rows, rejected
 rows, ordering, and SHA-256 hashes. Changing the fixture seed changes generated
 measurements while preserving schemas and validation behavior.
+
+## Privacy, redistribution, and retention
+
+Bundled fixture privacy classification is public synthetic data. Optional
+uploads are visitor-controlled runtime data and are not redistributed,
+committed, logged, or retained by an owner backend. Independently written
+source and documentation are redistributed under the repository MIT license;
+generated rows are transient evidence, not a published dataset.
+
+The retained authority is generator and pipeline source, schema contracts,
+tests, hashes, and this record. If lineage or privacy cannot be reproduced, the
+public demo link is removed until replacement evidence passes review.

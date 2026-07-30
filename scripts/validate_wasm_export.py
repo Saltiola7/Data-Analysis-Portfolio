@@ -10,6 +10,7 @@ from pathlib import Path
 ERROR_MARKERS = (
     "MarimoExceptionRaisedError",
     "CellNotInitializedError",
+    "ModuleNotFoundError",
     "No module named",
     "Traceback (most recent call last)",
 )
@@ -33,28 +34,52 @@ def _normalized_package(package: str) -> str:
     return normalized
 
 
-def validate_export(export_root: Path, package: str) -> None:
+def _validate_dependencies(
+    index_text: str,
+    expected_dependencies: tuple[str, ...],
+) -> None:
+    for dependency in expected_dependencies:
+        normalized_dependency = dependency.strip()
+        dependency_pattern = re.compile(
+            rf"(?<![A-Za-z0-9_.+-]){re.escape(normalized_dependency)}"
+            r"(?![A-Za-z0-9_.+-])"
+        )
+        if not normalized_dependency or dependency_pattern.search(index_text) is None:
+            raise ExportValidationError(
+                f"WASM export is missing requested dependency {normalized_dependency!r}"
+            )
+
+
+def _validate_text(text: str, location: str) -> None:
+    for marker in ERROR_MARKERS:
+        if marker in text:
+            raise ExportValidationError(f"WASM export contains {marker!r} in {location}")
+    for pattern in PRIVATE_PATH_PATTERNS:
+        if pattern.search(text):
+            raise ExportValidationError(f"WASM export contains a private local path in {location}")
+
+
+def validate_export(
+    export_root: Path,
+    package: str,
+    *,
+    expected_dependencies: tuple[str, ...] = (),
+) -> None:
     """Validate the executable shell, embedded outputs, and local package wheel."""
 
     export_root = export_root.resolve()
     package = _normalized_package(package)
-    if not (export_root / "index.html").is_file():
+    index_path = export_root / "index.html"
+    if not index_path.is_file():
         raise ExportValidationError("WASM export is missing index.html")
+    index_text = index_path.read_text(encoding="utf-8", errors="replace")
+    _validate_dependencies(index_text, expected_dependencies)
 
     for path in sorted(export_root.rglob("*")):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        for marker in ERROR_MARKERS:
-            if marker in text:
-                raise ExportValidationError(
-                    f"WASM export contains {marker!r} in {path.relative_to(export_root)}"
-                )
-        for pattern in PRIVATE_PATH_PATTERNS:
-            if pattern.search(text):
-                raise ExportValidationError(
-                    f"WASM export contains a private local path in {path.relative_to(export_root)}"
-                )
+        _validate_text(text, str(path.relative_to(export_root)))
 
     wheels = sorted((export_root / "public" / "wheels").glob("*.whl"))
     matching: list[Path] = []
@@ -66,6 +91,14 @@ def validate_export(export_root: Path, package: str) -> None:
             raise ExportValidationError(f"WASM export contains an invalid wheel: {wheel}") from exc
         if f"{package}/__init__.py" in names:
             matching.append(wheel)
+            with zipfile.ZipFile(wheel) as archive:
+                for member in sorted(names):
+                    if (
+                        member.startswith(f"{package}/")
+                        and Path(member).suffix.lower() in TEXT_SUFFIXES
+                    ):
+                        source = archive.read(member).decode("utf-8", errors="replace")
+                        _validate_text(source, f"{wheel.name}!/{member}")
         if any(name.startswith(f"src/{package}/") for name in names):
             raise ExportValidationError(
                 f"WASM export contains malformed src-layout wheel: {wheel.name}"
@@ -81,8 +114,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("export_root", type=Path)
     parser.add_argument("--package", required=True)
+    parser.add_argument("--dependency", action="append", default=[])
     args = parser.parse_args()
-    validate_export(args.export_root, args.package)
+    validate_export(
+        args.export_root,
+        args.package,
+        expected_dependencies=tuple(args.dependency),
+    )
     print(f"WASM package validation passed: {args.package}")
 
 

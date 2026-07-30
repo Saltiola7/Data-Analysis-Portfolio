@@ -22,7 +22,7 @@ delivery_intent: draft-pr
 | Package authority | Project `pyproject.toml` and `uv.lock` |
 | Public data | Deterministic synthetic fixtures only |
 | Browser delivery | GitHub-backed Molab `/wasm` links |
-| Accessibility | WCAG 2.2 AA |
+| Accessibility | WCAG 2.2 AA target; automated semantic and 390px reflow gates plus manual review |
 | Validation | pytest, Ruff, strict Marimo, executed WASM, Chromium, provenance, privacy, and claim review |
 | Security and recovery owner | Repository owner |
 
@@ -177,8 +177,8 @@ synthetic, non-clinical, and non-causal.
 ### Preserve host and browser dependency parity
 
 Given the app executes through Pyodide in WASM, when its environment and export
-are validated, then the project lock, every PEP 723 header, and resolved browser
-dependency evidence agree on pandas 3.0.2.
+are validated, then the project lock, every PEP 723 header, and live
+post-recomputation browser identity agree on pandas 3.0.2.
 
 ### Preserve portfolio hierarchy
 
@@ -214,6 +214,7 @@ projects/analytics-learning-labs/
     ├── test_apps.py
     ├── test_contracts.py
     ├── test_fixtures.py
+    ├── test_presentation.py
     └── test_provenance.py
 ```
 
@@ -270,14 +271,15 @@ computing results.
 
 | Lab | Required columns | Canonical grain | Boundary rules |
 |---|---|---|---|
-| airline | `flight_id`, `carrier`, `route`, `arrival_delay_minutes`, `carrier_delay_minutes`, `late_aircraft_delay_minutes`, `cancelled` | unique `flight_id` | non-negative component delays; cancellation boolean; no person data |
-| cohort | `record_id`, `profile_key`, `age_band`, `exposure_score`, `genetic_risk_score`, `obesity_score`, `risk_band` | unique `record_id`; analysis deduplicates to `profile_key` | ordinal scores 0-10; fictional risk bands generated independently of the analyzed score composite; no clinical inference |
+| airline | `flight_id`, `carrier`, `route`, `arrival_delay_minutes`, `carrier_delay_minutes`, `late_aircraft_delay_minutes`, `cancelled` | unique `flight_id` | non-negative component delays; cancelled rows use zero delay placeholders excluded from completed-flight delay means; no person data |
+| cohort | `record_id`, `profile_key`, `age_band`, `exposure_score`, `genetic_risk_score`, `obesity_score`, `risk_band` | unique `record_id`; analysis deduplicates agreeing repeats to `profile_key` | ordinal scores 0-10; repeated profile records must agree on all profile attributes; fictional risk bands generated independently of the analyzed score composite; no clinical inference |
 | restaurant | `record_id`, `location_label`, `country`, `region`, `latitude`, `longitude` | unique `record_id` | resolved latitude -90..90 and longitude -180..180; bounded null coordinates are retained for the unresolved ledger |
 | streaming | `title_id`, `release_year`, `duration_minutes`, `genre`, `content_type` | unique `title_id` | plausible year and positive duration; fictional titles only |
-| sports | `event_id`, `athlete_id`, `team`, `continent`, `weight_class`, `medal` | unique `event_id` | no names; medal boolean; summaries preserve event grain |
+| sports | `event_id`, `athlete_id`, `team`, `continent`, `weight_class`, `medal` | unique `event_id` | no names; athlete team, continent, and weight class remain stable across repeated events; medal boolean; summaries preserve event grain |
 
-Each generator records `generator_version` and `seed` in app-visible evidence.
-No fixture is stored as a third-party dataset.
+Each generator records `generator_version`, `seed`, and a canonical CSV
+`fixture_sha256` in app-visible evidence. No fixture is stored as a third-party
+dataset.
 
 ### Marimo app interface
 
@@ -285,10 +287,14 @@ Every app:
 
 1. carries PEP 723 dependencies for Marimo 0.23.15 and pandas 3.0.2,
    matching the project lock and resolved Pyodide browser package;
-2. exposes exactly one level-one heading and one labelled integer seed control;
-3. runs a deterministic default fixture without network or credentials;
+2. exposes exactly one level-one heading and one visible `label[for]`-associated
+   integer seed control; Marimo 0.23.15's generated raw-markup `aria-label`
+   remains a documented accessibility limitation;
+3. runs a deterministic default fixture without external data, API, private
+   service, or credentials after Molab/Pyodide runtime dependencies load;
 4. displays fixture identity, grain, limitations, metrics, and a captioned table;
-5. exposes loading, success, validation, and error semantics without color alone;
+5. exposes success, validation, and unexpected-error semantics without color
+   alone; Marimo supplies its native pending-cell indicator during recomputation;
 6. recomputes visibly after a seed change;
 7. performs no owner-side persistence, logging, or remote request.
 
@@ -341,6 +347,8 @@ resolution, and runs one Chromium journey per app.
    inclusive. Values outside that range raise `ValueError` before allocation.
 3. The same generator version, seed, and row count produce equal frames with
    the same row order and dtypes.
+   Default-fixture SHA-256 snapshots are pinned; changing one requires an
+   explicit generator-version and provenance review.
 4. Generated identifiers are stable, lab-prefixed, and unique at the declared
    grain.
 5. Fixtures use fictional labels and synthetic numeric values only. They
@@ -375,19 +383,31 @@ resolution, and runs one Chromium journey per app.
 7. Fictional health risk bands are not derived deterministically from the exact
    score composite used by the association. Undefined associations fail closed
    instead of being converted to a numeric value.
+8. Repeated cohort records may be deduplicated only when age band, all three
+   scores, and risk band agree. A conflicting profile fails validation rather
+   than being collapsed by row order.
+9. Airline delay means use completed flights only. Cancelled rows use explicit
+   zero placeholders that are excluded from those means while remaining in
+   flight, cancellation, and operational on-time denominators.
+10. A repeated fictional athlete retains one team, continent, and weight class;
+   each fictional team maps to one continent.
 
 ### Marimo application behavior
 
 1. Each source is a valid Marimo app under `marimo check --strict`.
 2. The default app run completes without a failed cell, page error, console
-   error, unhandled exception, network dependency, or credential prompt.
-3. Each app contains exactly one visible H1, an accessible labelled seed
-   control, a limitations statement, a fixture/grain statement, visible
-   metrics, and at least one captioned table.
+   error, unhandled exception, private data/API dependency, or credential
+   prompt after Molab/Pyodide runtime dependencies load.
+3. Each app contains exactly one visible H1, one visible `Seed` label associated
+   to a numeric control, a limitations statement, a fixture/grain statement,
+   visible metrics, and at least one captioned table. WCAG 2.2 AA remains a
+   target until Marimo's generated raw-markup `aria-label` exposes the plain
+   accessible name.
 4. Changing the seed causes visible fixture identity and result evidence to
    change without reloading the page.
-5. Loading, success, validation-error, and unexpected-error states are
-   distinguishable in text; color is never the sole signal.
+5. Success, validation-error, and unexpected-error states are distinguishable
+   in text; Marimo supplies its native pending-cell indicator during
+   recomputation, and color is never the sole signal.
 6. Apps retain no user input after the browser session and make no owner-side
    write, logging, or analytics request.
 
@@ -400,7 +420,8 @@ Only these owner-approved issuer credentials are admitted:
 | Data Scientist | `assets/certifications/datacamp-data-scientist.jpg` | `41b1e4b20344bc75ff0debb054db594213707ca7a413272cd65316fac2c7a748` | `https://careerhub-api.datacamp.com/certificates/DS0020270967326/pdf` |
 | Data Engineer | `assets/certifications/datacamp-data-engineer.jpg` | `a980ae6b80f08b294b57e6f5074f308544571ba4eaf68b7fff8fee500319f3ad` | `https://careerhub-api.datacamp.com/certificates/DE0013887181066/pdf` |
 
-The repository records the owner-provided source path, credential ID, issue
+Private gate evidence verifies the owner-provided source locally. The public
+repository records only the admitted destination path, credential ID, issue
 date, file hash, dimensions, metadata review, and visible-content review.
 Admission fails if a copied asset's hash differs, its metadata contains GPS or
 author identity, or the public page includes assessment prompts, solutions,

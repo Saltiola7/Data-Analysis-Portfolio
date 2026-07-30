@@ -30,3 +30,22 @@ Conceptual inspiration is allowed only through independently implemented
 clean-room successors. Their behavior, code, fixtures, schemas, tests, metrics,
 and documentation must be newly written, and their provenance must disclose the
 generalized ancestry.
+
+Historical notebooks and certification assessment files may be inspected
+privately to decide whether a general theme is suitable for a clean-room
+successor. Converter output, source code, prose, supplied datasets, schemas,
+metrics, outputs, grader rules, and private history do not cross that boundary.
+
+## Professional credential exception
+
+The only admitted professional credential assets are the two owner-approved,
+owner-provided JPEG screenshots of issuer-issued credentials documented in
+[CERTIFICATIONS.md](CERTIFICATIONS.md). Each asset has an exact checksum,
+public verification URL, visible-content review, metadata review, and explicit
+public purpose.
+
+This exception covers those reviewed credential screenshots only. It does not
+admit related assessment material, confer a license to reuse the images, or
+change the repository's prohibition on unapproved personal documents and
+private identifiers. The public verification IDs visible on the approved
+credentials are intentionally disclosed professional evidence.

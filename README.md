@@ -1,20 +1,14 @@
-# Cloud, Data, and AI Platform Portfolio
+# Data Portfolio
 
-Clean-room engineering portfolio by [Tommi Saltiola](https://www.linkedin.com/in/tommisaltiola/).
+Clean-room data engineering and applied analytics portfolio by
+[Tommi Saltiola](https://www.linkedin.com/in/tommisaltiola/).
 
 [Canonical GitHub repository](https://github.com/Saltiola7/data-portfolio)
 
-Primary fit:
-
-1. SEO/AEO Platform Engineer
-2. Agentic AI Engineer
-3. AI Platform Engineer
-4. Forward Deployed Engineer for AI platforms
-5. Cloud/Data Platform Engineer
-
-The work emphasizes hands-on implementation: search intelligence, autonomous
-workflows, cloud and data foundations, orchestration, observability, and
-evidence-gated delivery.
+The portfolio emphasizes reproducible analysis, explicit data contracts,
+deterministic synthetic fixtures, browser-runnable evidence, and test-driven
+delivery. GitHub source is the portfolio front door; Molab derives each
+interactive Marimo app from that reviewed source on demand.
 
 ## Flagship projects
 
@@ -24,21 +18,49 @@ evidence-gated delivery.
 | [Content Performance Classifier](projects/content-performance-classifier/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/content-performance-classifier/src/app.py/wasm) | Leakage-safe train/validation/reserved-test design, calibration, slice evidence, threshold governance, privacy-bounded exports | 27 |
 | [Public-sector Opportunity Pipeline](projects/public-sector-opportunity-pipeline/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/public-sector-opportunity-pipeline/app.py/wasm) | Heterogeneous ingestion, deterministic incremental merge, watermarks, retries, Prefect boundary, transparent scoring | 66 |
 
-All three projects use only deterministic fictional data and pass focused tests,
-Ruff, strict Marimo checks, executed WASM export validation, and real-browser
+All three flagships use deterministic fictional data and pass focused tests,
+Ruff, strict Marimo checks, executed WASM export validation, and Chromium
 interaction smoke tests.
 
-The wellness and classifier projects independently generalize concepts from
-earlier DataCamp certification work. They use newly written code, schemas,
-tests, metrics, and synthetic fixtures; assessment prompts, supplied datasets,
-solutions, outputs, and certificate images are not published. The opportunity
-pipeline similarly generalizes earlier multi-source Prefect work without
-reusing its code, records, schemas, or endpoint contracts.
+The wellness and classifier projects independently generalize broad competency
+areas demonstrated through professional certification. They use newly written
+code, schemas, tests, metrics, and synthetic fixtures. The opportunity pipeline
+similarly generalizes earlier multi-source orchestration work without reusing
+private code, records, schemas, or endpoint contracts.
 
-## Clean-room products
+## Supporting learning labs
 
-Two independent repositories turn deeper search and knowledge-system patterns
-into public demonstrations without employer-code reuse:
+These smaller labs modernize five historical learning themes as independently
+written Marimo apps. They are supporting analytical demonstrations, not claims
+of production deployment. Every default path uses deterministic synthetic data
+and runs without credentials, uploads, or private infrastructure.
+
+| Lab | Run | Analytical focus |
+|---|---|---|
+| [Airline Delay Quality Lab](projects/analytics-learning-labs/README.md#airline-delay-quality-lab) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/airline_delays.py/wasm) | Flight-grain delay components, cancellation context, and carrier summaries |
+| [Synthetic Health Risk Quality Lab](projects/analytics-learning-labs/README.md#synthetic-health-risk-quality-lab) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/synthetic_cohort.py/wasm) | Duplicate-profile audit and descriptive ordinal associations over fictional data |
+| [Restaurant Location Quality Lab](projects/analytics-learning-labs/README.md#restaurant-location-quality-lab) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/restaurant_locations.py/wasm) | Coordinate validation, accepted records, and an explicit unresolved ledger |
+| [Streaming Catalog Explorer](projects/analytics-learning-labs/README.md#streaming-catalog-explorer) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/streaming_catalog.py/wasm) | Release-period, genre, and duration summaries at title grain |
+| [Judo Medal Explorer](projects/analytics-learning-labs/README.md#judo-medal-explorer) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/sports_outcomes.py/wasm) | Medal-rate summaries at declared fictional athlete-event grain |
+
+See the [Analytics Learning Labs evidence](projects/analytics-learning-labs/README.md)
+and [clean-room provenance](projects/analytics-learning-labs/PROVENANCE.md).
+
+## Professional certifications
+
+Owner-approved DataCamp Data Scientist and Data Engineer certificates are
+published as professional evidence with official verification links, exact
+checksums, visible-content review, and metadata review.
+
+[Review certifications and competency mapping](CERTIFICATIONS.md).
+
+Certificate images do not admit any associated assessment prompts, datasets,
+solutions, schemas, metrics, outputs, or grader rules into this repository.
+
+## Independent clean-room products
+
+Two separate repositories turn deeper search and knowledge-system patterns into
+public demonstrations without employer-code reuse:
 
 - [Search Taxonomy Lab](https://github.com/Saltiola7/search-taxonomy-lab) —
   TF-IDF and latent-semantic evidence, cluster discovery, transparent
@@ -46,9 +68,6 @@ into public demonstrations without employer-code reuse:
 - [Content Evidence Workbench](https://github.com/Saltiola7/content-evidence-workbench) —
   retrieval, exact citations, declared-entity context, judged evaluation, and
   explicit human review over a synthetic corpus.
-
-GitHub source and this README are the portfolio front door. Molab runs reviewed
-Marimo source on demand; there is no separately maintained portfolio site.
 
 ## Fixed-scope service
 
@@ -62,22 +81,32 @@ inspect the owner-authored, MIT-licensed
 
 ## Reproduce the evidence
 
-Each project has its own `pyproject.toml` and `uv.lock`. From a project
-directory:
+Each flagship has its own `pyproject.toml` and `uv.lock`. From the repository
+root, run the matching app path inside each project:
 
 ```bash
-uv sync --locked
-uv run pytest -q
-uv run ruff check .
-uv run ruff format --check .
-uv run marimo check --strict app.py
+(cd projects/wellness-data-pipeline && uv sync --locked && uv run --frozen pytest -q && uv run --frozen marimo check --strict app.py)
+(cd projects/content-performance-classifier && uv sync --locked && uv run --frozen pytest -q && uv run --frozen marimo check --strict src/app.py)
+(cd projects/public-sector-opportunity-pipeline && uv sync --locked && uv run --frozen pytest -q && uv run --frozen marimo check --strict app.py)
 ```
 
-The classifier notebook lives at `src/app.py`. The
-[quality workflow](.github/workflows/quality.yml) runs every project gate,
-checks stable committed-session source identities, builds all three apps in a
-temporary WASM test surface, exercises them in Chromium, scans critical
-vulnerabilities, and emits an SPDX software bill of materials.
+Project-local README files list their complete Ruff and verification commands.
+The five learning labs share one locked environment:
+
+```bash
+(
+  cd projects/analytics-learning-labs
+  uv sync --locked
+  uv run --frozen pytest -q
+  uv run --frozen ruff check .
+  uv run --frozen ruff format --check .
+  uv run --frozen marimo check --strict apps/*.py
+)
+```
+
+The [quality workflow](.github/workflows/quality.yml) runs project gates, builds
+all eight apps in temporary WASM test surfaces, exercises them in Chromium,
+scans critical vulnerabilities, and emits an SPDX software bill of materials.
 
 ## Trust boundary
 
@@ -99,5 +128,8 @@ through pull-request review.
 
 ## License
 
-Owner-authored code is available under the [MIT License](LICENSE). Any future
-public datasets retain their separately recorded source licenses.
+Owner-authored code and documentation are available under the
+[MIT License](LICENSE). Professional credential images are published solely as
+verification evidence and are not licensed for reuse under the repository's
+MIT license. Any future public datasets retain their separately recorded source
+licenses.
