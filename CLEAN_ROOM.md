@@ -14,8 +14,8 @@ Forbidden inputs:
 
 - employer or client code, prompts, schemas, taxonomies, thresholds, data,
   screenshots, metrics, configuration, or Git history
-- DataCamp assessment prompts, downloadable assessment data, or exact expected
-  outputs
+- DataCamp assessment prompts, supplied data, solution code, exact schemas,
+  expected outputs, or certificate screenshots
 - SaaS Pegasus, Flowbite Premium, or other restricted source and assets
 - personal documents, health data, calendars, contacts, signatures, or
   credential identifiers
@@ -24,3 +24,7 @@ Forbidden inputs:
 Every public project must record authorship, source lineage, data license,
 synthetic-generation method, dependency licenses, and known limitations.
 
+Conceptual inspiration is allowed only through independently implemented
+clean-room successors. Their behavior, code, fixtures, schemas, tests, metrics,
+and documentation must be newly written, and their provenance must disclose the
+generalized ancestry.

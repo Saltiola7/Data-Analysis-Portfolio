@@ -14,5 +14,6 @@ Each project adds a local provenance record containing:
 - retention and replacement policy
 
 User-uploaded demo data remains runtime-only and is never committed, logged,
-snapshotted, or added to portfolio fixtures.
-
+snapshotted, or added to portfolio fixtures. The public Molab links use `/wasm`
+so bounded uploads are processed in the visitor's browser rather than an
+owner-operated backend.

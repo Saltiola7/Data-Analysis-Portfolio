@@ -1,8 +1,8 @@
 # Dependency and License Inventory
 
 Each project-local `uv.lock` is the executable dependency authority. The root
-`uv.lock` governs release-validation tools. GitHub Actions also emits a full
-SPDX JSON software bill of materials for each validated release build.
+`uv.lock` governs repository-validation tools. GitHub Actions also emits a full
+SPDX JSON software bill of materials for each validated CI build.
 
 ## Direct runtime dependencies
 
@@ -14,7 +14,7 @@ SPDX JSON software bill of materials for each validated release build.
 | scikit-learn | 1.9.0 | content classifier | BSD-3-Clause |
 | Prefect | 3.8.0 | optional opportunity orchestration adapter | Apache-2.0 |
 
-## Direct development and release dependencies
+## Direct development and validation dependencies
 
 | package | locked version | purpose | declared license |
 |---|---:|---|---|

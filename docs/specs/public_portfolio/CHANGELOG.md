@@ -40,10 +40,14 @@ title: Public Engineering Portfolio Changelog
 - Published the three synthetic flagships and enabled the initial Pages
   deployment.
 
-## 2026-07-30 - Repository-only publication intent
+## 2026-07-30 - Repository-only publication
 
 - Chose the GitHub repository and README as the only portfolio front door.
 - Retired GitHub Pages while retaining GitHub-backed Molab `/wasm` execution.
 - Audited legacy certification solutions, flows, and notebooks.
 - Excluded raw assessment artifacts and weak or unsafe notebook conversions.
 - Disclosed conceptual ancestry for independent synthetic successors.
+- Removed the static-site source and Pages deployment workflow.
+- Preserved all project tests, strict Marimo checks, ephemeral WASM builds,
+  Chromium journeys, vulnerability scanning, and SBOM generation in CI.
+- Added direct Molab `/wasm` links for all three repository flagships.
