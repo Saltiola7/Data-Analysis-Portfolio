@@ -88,7 +88,7 @@ flowchart LR
 | Interaction | not applicable: labs execute synchronously from deterministic local fixtures |
 | State | not applicable: labs expose no durable workflow state |
 | Data/trust | required: private inputs never cross into public source or runtime |
-| Schema | required: each fixture grain and schema will be defined in this specification |
+| Schema | required: fixture schema and grain table in Specification |
 | Dependency/deployment | required: GitHub source is canonical and Molab derives its runtime |
 | Quantitative | not applicable: admission does not depend on a numeric comparison |
 
@@ -158,3 +158,148 @@ quality gates run, then the lab and its Molab link are not admitted.
 Given learning labs demonstrate earlier or narrower analytical work, when the
 root README presents them, then they remain a supporting section below the
 three current flagships and are not described as production systems.
+
+## Specification
+
+### Project tree
+
+```text
+projects/analytics-learning-labs/
+├── .marimo.toml
+├── README.md
+├── PROVENANCE.md
+├── pyproject.toml
+├── uv.lock
+├── apps/
+│   ├── airline_delays.py
+│   ├── synthetic_cohort.py
+│   ├── restaurant_locations.py
+│   ├── streaming_catalog.py
+│   └── sports_outcomes.py
+├── analytics_learning_labs/
+│   ├── __init__.py
+│   ├── analysis.py
+│   ├── contracts.py
+│   ├── fixtures.py
+│   └── presentation.py
+└── tests/
+    ├── test_analysis.py
+    ├── test_apps.py
+    ├── test_contracts.py
+    ├── test_fixtures.py
+    └── test_provenance.py
+```
+
+The five apps share one locked package and dependency environment. No `.ipynb`,
+converted notebook, historical dataset, or saved legacy output is committed.
+
+### Application registry
+
+| App | Historical theme only | Public source | Default grain | Primary result |
+|---|---|---|---|---|
+| Airline Delay Quality Lab | `airline.ipynb` | `apps/airline_delays.py` | one fictional flight | carrier delay-quality summary |
+| Synthetic Health Risk Quality Lab | `cancer-patient-dataset.ipynb` | `apps/synthetic_cohort.py` | one unique fictional profile after duplicate audit | profile duplication and ordinal association summary |
+| Restaurant Location Quality Lab | `mcdonalds.ipynb` | `apps/restaurant_locations.py` | one fictional location record | accepted locations plus unresolved ledger |
+| Streaming Catalog Explorer | `notebook.ipynb` | `apps/streaming_catalog.py` | one fictional catalog title | duration summary by release period and genre |
+| Judo Medal Explorer | `winning-medal-in-judo.ipynb` | `apps/sports_outcomes.py` | one fictional athlete-event | medal-rate summary at declared event grain |
+
+### Shared interfaces
+
+```python
+@dataclass(frozen=True)
+class FixtureContract:
+    slug: str
+    required_columns: tuple[str, ...]
+    grain_columns: tuple[str, ...]
+    maximum_rows: int
+
+@dataclass(frozen=True)
+class AnalysisResult:
+    lab_slug: str
+    grain: str
+    metrics: Mapping[str, str | int | float]
+    primary_table: pandas.DataFrame
+    secondary_table: pandas.DataFrame | None
+    notes: tuple[str, ...]
+
+def validate_fixture(frame: pandas.DataFrame, contract: FixtureContract) -> None: ...
+def generate_airline_fixture(seed: int, rows: int = 160) -> pandas.DataFrame: ...
+def generate_cohort_fixture(seed: int, rows: int = 180) -> pandas.DataFrame: ...
+def generate_restaurant_fixture(seed: int, rows: int = 140) -> pandas.DataFrame: ...
+def generate_streaming_fixture(seed: int, rows: int = 180) -> pandas.DataFrame: ...
+def generate_sports_fixture(seed: int, rows: int = 220) -> pandas.DataFrame: ...
+def analyze_airline_delays(frame: pandas.DataFrame) -> AnalysisResult: ...
+def analyze_synthetic_cohort(frame: pandas.DataFrame) -> AnalysisResult: ...
+def analyze_restaurant_locations(frame: pandas.DataFrame) -> AnalysisResult: ...
+def analyze_streaming_catalog(frame: pandas.DataFrame) -> AnalysisResult: ...
+def analyze_sports_outcomes(frame: pandas.DataFrame) -> AnalysisResult: ...
+```
+
+Every generator accepts an integer seed and produces byte-stable tabular values
+for the supported runtime. Every analysis validates its fixture before
+computing results.
+
+### Schema, grain, and boundaries
+
+| Lab | Required columns | Canonical grain | Boundary rules |
+|---|---|---|---|
+| airline | `flight_id`, `carrier`, `route`, `arrival_delay_minutes`, `carrier_delay_minutes`, `late_aircraft_delay_minutes`, `cancelled` | unique `flight_id` | non-negative component delays; cancellation boolean; no person data |
+| cohort | `record_id`, `profile_key`, `age_band`, `exposure_score`, `genetic_risk_score`, `obesity_score`, `risk_band` | unique `record_id`; analysis deduplicates to `profile_key` | ordinal scores 0-10; declared fictional risk bands; no clinical inference |
+| restaurant | `record_id`, `location_label`, `country`, `region`, `latitude`, `longitude` | unique `record_id` | latitude -90..90 and longitude -180..180 after repair; unresolved rows retained |
+| streaming | `title_id`, `release_year`, `duration_minutes`, `genre`, `content_type` | unique `title_id` | plausible year and positive duration; fictional titles only |
+| sports | `event_id`, `athlete_id`, `team`, `continent`, `weight_class`, `medal` | unique `event_id` | no names; medal boolean; summaries preserve event grain |
+
+Each generator records `generator_version` and `seed` in app-visible evidence.
+No fixture is stored as a third-party dataset.
+
+### Marimo app interface
+
+Every app:
+
+1. carries PEP 723 dependencies for Marimo 0.23.15 and pandas 3.0.5;
+2. exposes exactly one level-one heading and one labelled integer seed control;
+3. runs a deterministic default fixture without network or credentials;
+4. displays fixture identity, grain, limitations, metrics, and a captioned table;
+5. exposes loading, success, validation, and error semantics without color alone;
+6. recomputes visibly after a seed change;
+7. performs no owner-side persistence, logging, or remote request.
+
+### Credential evidence interface
+
+`CERTIFICATIONS.md` owns the public credential and competency map.
+`assets/certifications/` owns the two owner-approved issuer JPEG files.
+
+For each credential, the page records:
+
+- title, issuer, credential ID, certification date, and official verification
+  URL;
+- repository-relative image path, SHA-256, visible-content review, and metadata
+  review;
+- broad certified competency areas;
+- links to independently implemented public successor projects;
+- an explicit statement that assessment prompts, datasets, solutions, schemas,
+  metrics, outputs, and grader rules remain private.
+
+### Molab URL contract
+
+The root README uses durable post-merge URLs:
+
+```text
+https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/<app>.py/wasm
+```
+
+Pre-merge verification uses the pushed 40-character commit SHA because
+slash-named feature branches are ambiguous in Molab routes. CI installs one
+locked learning-lab environment, checks all five apps strictly, executes each
+WASM export, validates the local package wheel, and runs one Chromium journey
+per app.
+
+### Ownership and dependency order
+
+- LAB-002 owns only credential images and `CERTIFICATIONS.md`.
+- LAB-003 through LAB-007 own disjoint app behavior plus shared package changes
+  coordinated through LAB-001 contracts.
+- LAB-008 owns root README, root validation tests, workflow, browser smoke,
+  dependency inventory, provenance summaries, and lifecycle closure.
+- App implementation starts only after LAB-001 behavior, interfaces, schemas,
+  and contracts are committed.
