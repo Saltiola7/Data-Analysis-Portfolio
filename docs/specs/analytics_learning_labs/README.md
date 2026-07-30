@@ -220,6 +220,7 @@ projects/analytics-learning-labs/
 ├── .marimo.toml
 ├── README.md
 ├── PROVENANCE.md
+├── browser-wheel-lock.json
 ├── pyproject.toml
 ├── uv.lock
 ├── apps/
@@ -234,6 +235,8 @@ projects/analytics-learning-labs/
 │   ├── contracts.py
 │   ├── fixtures.py
 │   └── presentation.py
+├── browser_wheels/
+│   └── analytics_learning_labs-0.1.0-py3-none-any.whl
 └── tests/
     ├── test_analysis.py
     ├── test_apps.py
@@ -311,7 +314,8 @@ dataset.
 Every app:
 
 1. carries PEP 723 dependencies for Marimo 0.23.15 and pandas 3.0.2,
-   matching the project lock and resolved Pyodide browser package;
+   plus the exact immutable browser-wheel requirement recorded in
+   `browser-wheel-lock.json`;
 2. exposes exactly one level-one heading and one visible `label[for]`-associated
    integer seed control; Marimo 0.23.15's generated raw-markup `aria-label`
    remains a documented accessibility limitation;
@@ -321,7 +325,37 @@ Every app:
 5. exposes success, validation, and unexpected-error semantics without color
    alone; Marimo supplies its native pending-cell indicator during recomputation;
 6. recomputes visibly after a seed change;
-7. performs no owner-side persistence, logging, or remote request.
+7. performs no owner-side persistence or logging; its only application-owned
+   runtime request is the hash-pinned wheel fetch declared in PEP 723.
+
+### Browser wheel lock interface
+
+`browser-wheel-lock.json` is the single machine-readable authority for the
+shared package artifact:
+
+```json
+{
+  "schema_version": 1,
+  "distribution": "analytics-learning-labs",
+  "version": "0.1.0",
+  "filename": "analytics_learning_labs-0.1.0-py3-none-any.whl",
+  "source_commit": "<40 lowercase hexadecimal characters>",
+  "source_tree_sha256": "<64 lowercase hexadecimal characters>",
+  "wheel_sha256": "<64 lowercase hexadecimal characters>",
+  "url": "https://raw.githubusercontent.com/Saltiola7/data-portfolio/<source_commit>/projects/analytics-learning-labs/browser_wheels/<filename>",
+  "requirement": "analytics-learning-labs @ <url>#sha256=<wheel_sha256>"
+}
+```
+
+The wheel commit contains the exact package source used to build the artifact.
+Every app repeats `requirement` byte-for-byte in its PEP 723 dependencies so a
+single-file Molab fetch remains import-closed. The anchor is never `main`, a
+tag, a feature branch, an abbreviated hash, a local path, or `git+https`.
+
+`scripts/verify_browser_wheel.py` validates the lock schema, hashes the
+canonical package tree, opens the wheel, compares every packaged Python file
+with source at `source_commit`, rejects unexpected executable or private-path
+content, and confirms all five app requirements match the lock.
 
 ### Credential evidence interface
 
@@ -348,10 +382,14 @@ https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analy
 ```
 
 Pre-merge verification uses the pushed 40-character commit SHA because
-slash-named feature branches are ambiguous in Molab routes. CI installs one
-locked learning-lab environment, checks all five apps strictly, executes each
-WASM export, validates the local package wheel and exact pandas 3.0.2 browser
-resolution, and runs one Chromium journey per app.
+slash-named feature branches are ambiguous in Molab routes. The browser smoke
+accepts either a local export root or one explicit HTTPS `--url`. Remote mode
+captures every console message, rejects Python exception markers regardless of
+console severity, tolerates only enumerated Molab telemetry noise, and requires
+the visible success state, fixture identity, primary table, and seed
+recomputation. CI installs one locked learning-lab environment, checks all five
+apps strictly, executes each local WASM export, validates the browser wheel and
+exact pandas 3.0.2 browser resolution, and runs one Chromium journey per app.
 
 ### Ownership and dependency order
 
