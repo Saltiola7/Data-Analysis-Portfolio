@@ -541,6 +541,9 @@ of the private assessment implementation.
    an unavailable, shell-only, non-reactive, or erroring route as a failed
    Deploy gate. After merge, the same journey passes through each durable
    `blob/main` link before recruiter-facing use.
+9. Cycle-scoped immutable URL observations are retained in
+   `PORT-PUB-014.deploy.json` and link to the corresponding Gate Ledger
+   evidence record.
 
 ### Provenance, migration, and rollback
 
