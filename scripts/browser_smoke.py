@@ -19,6 +19,11 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 TIMEOUT_MS = 180_000
 ConsoleRecord = tuple[str, str]
 type ContentTarget = Page | Frame
+_LIVE_LAB_MARKERS = {
+    "Success: analysis ready.",
+    "fixture-identity",
+    "primary-table",
+}
 
 _RUNTIME_ERROR_MARKERS = (
     "modulenotfounderror",
@@ -83,12 +88,53 @@ def _serve(root: Path) -> tuple[http.server.ThreadingHTTPServer, str]:
 def _has_live_learning_lab_evidence(
     console_messages: list[ConsoleRecord],
 ) -> bool:
-    live_outputs = [message for _, message in console_messages if "cell-op" in message.casefold()]
-    return (
-        any("Success: analysis ready." in message for message in live_outputs)
-        and any("fixture-identity" in message for message in live_outputs)
-        and any("primary-table" in message for message in live_outputs)
-    )
+    markers_by_run: dict[str, set[str]] = {}
+    for _, message in console_messages:
+        event = _kernel_cell_output(message)
+        if event is None:
+            continue
+        run_id, output = event
+        observed = markers_by_run.setdefault(run_id, set())
+        observed.update(marker for marker in _LIVE_LAB_MARKERS if marker in output)
+    return any(_LIVE_LAB_MARKERS <= observed for observed in markers_by_run.values())
+
+
+def _kernel_cell_output(message: str) -> tuple[str, str] | None:
+    decoder = json.JSONDecoder()
+    offset = message.find("{")
+    envelope: dict[str, object] | None = None
+    while offset >= 0:
+        try:
+            candidate, _ = decoder.raw_decode(message[offset:])
+        except json.JSONDecodeError:
+            offset = message.find("{", offset + 1)
+            continue
+        if isinstance(candidate, dict) and candidate.get("id") == "kernelMessage":
+            envelope = candidate
+            break
+        offset = message.find("{", offset + 1)
+
+    event: tuple[str, str] | None = None
+    payload = envelope.get("payload") if envelope is not None else None
+    kernel_text = payload.get("message") if isinstance(payload, dict) else None
+    if isinstance(kernel_text, str):
+        try:
+            kernel_message = json.loads(kernel_text)
+        except json.JSONDecodeError:
+            kernel_message = None
+        if isinstance(kernel_message, dict) and kernel_message.get("op") == "cell-op":
+            data = kernel_message.get("data")
+            if isinstance(data, dict):
+                run_id = data.get("run_id")
+                output = data.get("output")
+                if (
+                    isinstance(run_id, str)
+                    and run_id
+                    and isinstance(output, dict)
+                    and isinstance(output.get("data"), str)
+                ):
+                    event = (run_id, output["data"])
+    return event
 
 
 def _wait_for_live_learning_lab(

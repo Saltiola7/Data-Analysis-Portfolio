@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from scripts.browser_smoke import (
@@ -64,11 +66,55 @@ def test_live_learning_lab_gate_rejects_static_source_literals() -> None:
     assert not _has_live_learning_lab_evidence(console_messages)
 
 
-def test_live_learning_lab_gate_requires_executed_evidence_cells() -> None:
+def _kernel_cell_message(run_id: str | None, output: str) -> tuple[str, str]:
+    kernel_message = json.dumps(
+        {
+            "op": "cell-op",
+            "data": {
+                "op": "cell-op",
+                "output": {"data": output},
+                "run_id": run_id,
+            },
+        }
+    )
+    console_payload = json.dumps(
+        {
+            "id": "kernelMessage",
+            "payload": {"message": kernel_message},
+            "type": "message",
+        }
+    )
+    return (
+        "debug",
+        f"[rpc] Worker -> Parent {console_payload} [https://marimo.app/runtime.js]",
+    )
+
+
+def test_live_learning_lab_gate_rejects_cached_null_run() -> None:
     console_messages = [
-        ("debug", 'kernelMessage {"op":"cell-op","data":"Success: analysis ready."}'),
-        ("debug", 'kernelMessage {"op":"cell-op","data":"fixture-identity"}'),
-        ("debug", 'kernelMessage {"op":"cell-op","data":"primary-table"}'),
+        _kernel_cell_message(None, "Success: analysis ready."),
+        _kernel_cell_message(None, "fixture-identity"),
+        _kernel_cell_message(None, "primary-table"),
+    ]
+
+    assert not _has_live_learning_lab_evidence(console_messages)
+
+
+def test_live_learning_lab_gate_rejects_markers_from_different_runs() -> None:
+    console_messages = [
+        _kernel_cell_message("run-1", "Success: analysis ready."),
+        _kernel_cell_message("run-2", "fixture-identity"),
+        _kernel_cell_message("run-3", "primary-table"),
+    ]
+
+    assert not _has_live_learning_lab_evidence(console_messages)
+
+
+def test_live_learning_lab_gate_requires_one_executed_run() -> None:
+    console_messages = [
+        _kernel_cell_message("run-live", "Success: analysis ready."),
+        _kernel_cell_message("run-live", "fixture-identity"),
+        _kernel_cell_message("run-live", "primary-table"),
     ]
 
     assert _has_live_learning_lab_evidence(console_messages)
