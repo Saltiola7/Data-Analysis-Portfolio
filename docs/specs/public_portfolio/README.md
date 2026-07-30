@@ -126,6 +126,13 @@ assessment data, assessment solution code, unapproved personal material, or
 unknown-license material, when admission runs, then publication fails and no
 public source or derived runtime includes it.
 
+### Admit approved professional credential evidence
+
+Given the owner approves an issuer certificate for public professional use,
+when the image content, metadata, checksum, provenance, and official
+verification URL pass review, then the credential evidence may be published
+without admitting any associated assessment material.
+
 ### Admit a clean-room successor
 
 Given a prior project supplies only conceptual inspiration, when new behavior,
@@ -148,6 +155,12 @@ the data is not committed, logged, snapshotted, or retained by an owner backend.
 Given GitHub source is canonical, when repository-only publication is enabled,
 then the static `site/` tree, Pages deployment actions, Pages permissions, and
 Pages URLs are absent while GitHub evidence and Molab links remain usable.
+
+### Keep learning labs subordinate
+
+Given a clean-room modernization passes every learning-lab gate, when the root
+README presents it, then it appears below the three flagships with explicit
+synthetic and historical-learning context.
 
 ## Contracts
 

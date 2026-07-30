@@ -105,3 +105,56 @@ and browser gates must pass before canonical GitHub source gains a Molab link.
 Canonical source: this specification. Owner: repository owner. Change trigger:
 source-admission, fixture, schema, app, validation, or delivery boundaries
 change.
+
+## Behavior
+
+### Replace a broken conversion with a clean-room modernization
+
+Given an automatic Jupyter-to-Marimo conversion contains third-party prose,
+unknown-license data, runtime errors, invalid observation grain, or unsupported
+claims, when the historical theme is admitted, then no converter output enters
+public history and an independently written synthetic lab replaces it.
+
+### Run every lab from a deterministic default
+
+Given a visitor opens any learning-lab Molab runtime without credentials,
+uploads, or private infrastructure, when the app starts, then a deterministic
+synthetic fixture produces a useful analysis, visible source identity, and no
+failed cell.
+
+### React without retaining visitor state
+
+Given a visitor changes a supported seed control, when Marimo recomputes, then
+the fixture and analysis update in memory, tables remain accessible, and no
+owner backend receives or retains the input.
+
+### Preserve analytical grain
+
+Given a fixture contains repeated entities or events, when an analysis
+summarizes outcomes, then it declares and enforces its observation grain rather
+than weighting repeated aggregates as independent evidence.
+
+### Reject unsafe health claims
+
+Given the synthetic health-risk lab computes an association, when the result is
+shown, then the app identifies the data as fictional, avoids diagnosis and
+causal language, and explains that the result has no clinical validity.
+
+### Publish professional credentials without assessment disclosure
+
+Given the owner explicitly approves an issuer certificate image, when visible
+content, metadata, hash, public purpose, and official verification URL pass
+review, then the image may appear in the credential evidence page while
+assessment prompts, data, code, schemas, metrics, and outputs remain private.
+
+### Fail closed on notebook errors
+
+Given a learning lab has a parse error, failed cell, missing local package,
+private dependency, browser console error, or broken reactive control, when
+quality gates run, then the lab and its Molab link are not admitted.
+
+### Preserve portfolio hierarchy
+
+Given learning labs demonstrate earlier or narrower analytical work, when the
+root README presents them, then they remain a supporting section below the
+three current flagships and are not described as production systems.
