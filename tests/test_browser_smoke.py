@@ -26,7 +26,10 @@ def test_runtime_error_classifier_rejects_notebook_failures(message: str) -> Non
     [
         "debug: loading Pyodide packages",
         "Failed to load resource: relay.vector.co returned 403",
+        "Failed to load resource: api.cr-relay.com returned 403",
         "visitor ID unavailable for telemetry",
+        "No visitor ID available. Load may have failed.",
+        "Load failed, error in settings",
         "export_demos/wasm-intro.py returned 404",
     ],
 )

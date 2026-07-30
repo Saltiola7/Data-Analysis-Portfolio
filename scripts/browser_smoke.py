@@ -6,17 +6,19 @@ import argparse
 import contextlib
 import functools
 import http.server
+import json
 import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlparse
 
-from playwright.sync_api import ConsoleMessage, Page, sync_playwright
+from playwright.sync_api import ConsoleMessage, Frame, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 TIMEOUT_MS = 180_000
 ConsoleRecord = tuple[str, str]
+type ContentTarget = Page | Frame
 
 _RUNTIME_ERROR_MARKERS = (
     "modulenotfounderror",
@@ -47,7 +49,10 @@ def _is_allowed_remote_noise(message: str) -> bool:
     required_fragments = (
         ("debug:", "loading pyodide packages"),
         ("relay.vector.co", "403"),
+        ("api.cr-relay.com", "403"),
         ("visitor id", "unavailable"),
+        ("no visitor id available",),
+        ("load failed, error in settings",),
         ("export_demos/wasm-intro.py", "404"),
     )
     return any(
@@ -76,7 +81,7 @@ def _serve(root: Path) -> tuple[http.server.ThreadingHTTPServer, str]:
 
 
 def _wait_for_recompute(
-    page: Page,
+    page: ContentTarget,
     action: Callable[[], None],
     expected: Callable[[], None],
 ) -> None:
@@ -93,21 +98,22 @@ def _wait_for_recompute(
 
 def _assert_common_page_contracts(
     page: Page,
+    content: ContentTarget,
     console_messages: list[ConsoleRecord],
     page_errors: list[str],
     *,
     remote: bool,
 ) -> None:
-    if page.locator("h1").count() != 1:
+    if content.locator("h1").count() != 1:
         raise BrowserSmokeError("page must expose exactly one level-one heading")
-    unnamed_tables = page.locator(
+    unnamed_tables = content.locator(
         "table:not([aria-label]):not([aria-labelledby]):not(:has(caption))"
     ).count()
     if unnamed_tables:
         raise BrowserSmokeError(f"page contains {unnamed_tables} unnamed table(s)")
     page.set_viewport_size({"width": 390, "height": 844})
     page.wait_for_timeout(500)
-    if page.evaluate(
+    if content.evaluate(
         "document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"
     ):
         raise BrowserSmokeError("page causes horizontal document overflow at 390px")
@@ -127,7 +133,7 @@ def _assert_common_page_contracts(
         )
 
 
-def _exercise_wellness(page: Page) -> None:
+def _exercise_wellness(page: ContentTarget) -> None:
     page.get_by_role("heading", name="Synthetic Wellness Data Pipeline", level=1).wait_for(
         state="visible", timeout=TIMEOUT_MS
     )
@@ -147,7 +153,7 @@ def _exercise_wellness(page: Page) -> None:
     raise BrowserSmokeError("wellness fixture did not react to the seed change")
 
 
-def _exercise_classifier(page: Page) -> None:
+def _exercise_classifier(page: ContentTarget) -> None:
     page.get_by_role("heading", name="Content Performance Classifier", level=1).wait_for(
         state="visible", timeout=TIMEOUT_MS
     )
@@ -170,7 +176,7 @@ def _exercise_classifier(page: Page) -> None:
     ).wait_for(state="visible", timeout=10_000)
 
 
-def _exercise_opportunity(page: Page) -> None:
+def _exercise_opportunity(page: ContentTarget) -> None:
     page.get_by_role(
         "heading",
         name="Public-sector Opportunity Pipeline",
@@ -198,7 +204,7 @@ def _exercise_opportunity(page: Page) -> None:
     raise BrowserSmokeError("opportunity scoring did not react to remote preference")
 
 
-def _exercise_learning_lab(page: Page) -> None:
+def _exercise_learning_lab(page: ContentTarget) -> None:
     page.locator("h1").wait_for(state="visible", timeout=TIMEOUT_MS)
     page.get_by_text("Success: analysis ready.", exact=True).wait_for(
         state="visible",
@@ -258,12 +264,40 @@ def _exercise_learning_lab(page: Page) -> None:
         raise BrowserSmokeError("invalid seed did not replace fixture identity")
 
 
-SCENARIOS: dict[str, Callable[[Page], None]] = {
+SCENARIOS: dict[str, Callable[[ContentTarget], None]] = {
     "wellness": _exercise_wellness,
     "classifier": _exercise_classifier,
     "opportunity": _exercise_opportunity,
     "learning-labs": _exercise_learning_lab,
 }
+
+
+def _console_text(message: ConsoleMessage) -> str:
+    """Preserve structured worker payloads that ``message.text`` collapses."""
+
+    rendered_args: list[str] = []
+    for argument in message.args:
+        try:
+            value = argument.json_value()
+        except Exception:
+            value = str(argument)
+        if isinstance(value, (dict, list)):
+            rendered_args.append(json.dumps(value, sort_keys=True, default=str))
+        elif value is not None:
+            rendered_args.append(str(value))
+    return " ".join(rendered_args).strip() or message.text
+
+
+def _remote_content_frame(page: Page) -> Frame:
+    deadline = time.monotonic() + (TIMEOUT_MS / 1000)
+    while time.monotonic() < deadline:
+        for frame in page.frames:
+            if frame == page.main_frame:
+                continue
+            if "entrypoint=" in frame.url and "/e?" in frame.url:
+                return frame
+        page.wait_for_timeout(500)
+    raise BrowserSmokeError("Molab did not expose its embedded Marimo application frame")
 
 
 def _exercise(page: Page, url: str, scenario: str, *, remote: bool = False) -> None:
@@ -273,21 +307,24 @@ def _exercise(page: Page, url: str, scenario: str, *, remote: bool = False) -> N
     def capture_console(message: ConsoleMessage) -> None:
         location = message.location
         source_url = location.get("url", "")
-        rendered = f"{message.text} [{source_url}]" if source_url else message.text
+        console_text = _console_text(message)
+        rendered = f"{console_text} [{source_url}]" if source_url else console_text
         console_messages.append((message.type, rendered))
 
     page.on("console", capture_console)
     page.on("pageerror", lambda error: page_errors.append(str(error)))
     page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT_MS)
+    content: ContentTarget = _remote_content_frame(page) if remote else page
 
     try:
-        SCENARIOS[scenario](page)
+        SCENARIOS[scenario](content)
     except (BrowserSmokeError, PlaywrightTimeoutError) as error:
         raise BrowserSmokeError(
             f"{error}; console={console_messages!r}; page={page_errors!r}"
         ) from error
     _assert_common_page_contracts(
         page,
+        content,
         console_messages,
         page_errors,
         remote=remote,
