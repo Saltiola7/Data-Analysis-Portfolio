@@ -15,7 +15,13 @@ without private infrastructure.
 
 ## Projects
 
-Flagship project releases are in progress. Each project will include:
+The first local flagship is the
+[Synthetic Wellness Data Pipeline](projects/wellness-data-pipeline/README.md):
+a deterministic, schema-governed data pipeline with synthetic fixtures,
+rejected-record evidence, content hashes, a bounded Marimo explorer, and 33
+focused tests.
+
+Every project includes:
 
 - problem and architecture
 - executable Marimo source
@@ -30,7 +36,10 @@ Separate clean-room repositories will host:
 
 - Search Taxonomy Lab
 - Content Evidence Workbench
-- DBSCTR Delivery Accelerator service evidence
+
+The [DBSCTR Delivery Accelerator](services/dbsctr-delivery-accelerator.md) is a
+fixed-scope implementation and handoff service around the owner-authored,
+MIT-licensed public framework.
 
 ## Trust Boundary
 
@@ -43,4 +52,3 @@ materials, or proprietary SaaS source is included. See
 Owner-authored code in this clean-root repository is available under the
 [MIT License](LICENSE). Individual public datasets retain their recorded source
 licenses.
-
