@@ -13,7 +13,7 @@
   require success, fixture, and table outputs from one non-null kernel run
   before testing seed recomputation.
 - Revalidated all eight local WASM applications and all five immutable Molab
-  routes. The repository now has 311 focused root and project tests.
+  routes. The repository now has more than 300 focused root and project tests.
 - Implementation through commit `cffe59b`.
 
 ## 2026-07-30 - Initial clean-room delivery
