@@ -30,3 +30,20 @@ title: Public Engineering Portfolio Changelog
 - Added locked release tools, a dependency inventory, critical-vulnerability
   scanning, SPDX SBOM generation, and approval-gated Pages deployment.
 - Kept existing public history and all remote branches unchanged.
+
+## 2026-07-29 - Approved publication
+
+- Replaced public `main` with the reviewed clean-root history after owner
+  approval.
+- Preserved the former history in a private recovery bundle and local recovery
+  reference.
+- Published the three synthetic flagships and enabled the initial Pages
+  deployment.
+
+## 2026-07-30 - Repository-only publication intent
+
+- Chose the GitHub repository and README as the only portfolio front door.
+- Retired GitHub Pages while retaining GitHub-backed Molab `/wasm` execution.
+- Audited legacy certification solutions, flows, and notebooks.
+- Excluded raw assessment artifacts and weak or unsafe notebook conversions.
+- Disclosed conceptual ancestry for independent synthetic successors.

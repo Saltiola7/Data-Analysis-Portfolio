@@ -14,8 +14,9 @@ risk: routine
 
 Demonstrate production-oriented data engineering through a deterministic,
 schema-governed pipeline built entirely from synthetic data. The project is an
-independent competency demonstration and contains no certification assessment
-materials.
+independent competency demonstration. It generalizes concepts from earlier
+certification work without copying any assessment prompt, supplied data,
+solution code, exact schema, metric, output, or credential image.
 
 ## Architecture
 
@@ -196,7 +197,8 @@ bounded upload paths, shows quality evidence, and offers explicit downloads.
   characters while leaving numeric negative values unchanged.
 - Audit hashes use canonical CSV serialization and SHA-256.
 - Synthetic generation uses a fixed seed and records generator version.
-- No personal or certification-assessment data enters fixtures or snapshots.
+- No personal data or copied certification prompt, supplied dataset, solution,
+  output, or credential image enters fixtures or snapshots.
 
 ## Validation
 

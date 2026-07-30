@@ -2,10 +2,15 @@
 
 ## Authorship
 
-This project was designed and implemented as new portfolio code from an approved
-behavior and contract specification. It does not copy employer, client,
-DataCamp assessment, SaaS Pegasus, premium template, or third-party repository
-source.
+This project was designed and independently implemented as new portfolio code
+from an approved behavior and contract specification. It generalizes the
+owner's earlier experience integrating heterogeneous public opportunity sources
+with Prefect.
+
+It does not copy prior implementation code, source records, exact schemas,
+endpoint contracts, selectors, credentials, employer or client material,
+DataCamp assessment artifacts, SaaS Pegasus source, premium template source, or
+third-party repository source.
 
 ## Data lineage
 

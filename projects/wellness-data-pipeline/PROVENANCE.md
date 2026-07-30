@@ -2,13 +2,16 @@
 
 ## Origin
 
-This project was created from a clean public specification on July 29, 2026.
-Implementation, tests, schema, narrative, and fixtures were written for this
-repository.
+This project was independently implemented from a clean public specification
+on July 29, 2026. It generalizes data-contract, unit-normalization, joining, and
+validation concepts from the owner's earlier data-engineering certification
+work.
 
-No employer source, client material, certification assessment material, private
-repository history, personal data, screenshots, prompts, metrics, or
-credentials were used.
+No assessment prompt, supplied dataset, solution code, exact schema, threshold,
+metric, output, credential image, employer source, client material, private
+repository history, personal data, or screenshot was copied. Implementation,
+tests, schemas, narrative, and synthetic fixtures were written for this
+repository.
 
 ## Data
 

@@ -2,13 +2,16 @@
 
 ## Origin
 
-This project was created from a clean public specification on July 29, 2026.
-Implementation, tests, feature contract, narrative, and fixture generator were
-written for this repository.
+This project was independently implemented from a clean public specification
+on July 29, 2026. It generalizes classification and evaluation concepts from
+the owner's earlier data-science certification work and reframes them for
+synthetic content-performance evidence.
 
-No employer source, client material, certification assessment material, private
-repository history, personal data, screenshots, prompts, features, labels,
-taxonomies, thresholds, metrics, or credentials were used.
+No assessment prompt, supplied dataset, solution code, exact schema, feature
+set, label, threshold, metric, output, credential image, employer source,
+client material, private repository history, personal data, screenshot, or
+taxonomy was copied. Implementation, tests, feature contract, narrative, and
+fixture generator were written for this repository.
 
 ## Synthetic data
 
