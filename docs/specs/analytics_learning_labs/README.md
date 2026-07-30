@@ -325,7 +325,9 @@ per app.
 
 1. `validate_fixture` rejects missing required columns, empty frames, frames
    above `maximum_rows`, duplicate grain keys, null grain keys, and values
-   outside the lab-specific boundaries.
+   outside the lab-specific boundaries. Raw restaurant coordinates are the
+   deliberate exception: structural validation admits them so analysis can
+   classify each row into accepted, repaired, or unresolved evidence.
 2. Analyses call `validate_fixture` before aggregation and never silently
    discard invalid records.
 3. Every `AnalysisResult.lab_slug` matches its contract, `grain` names the
@@ -418,12 +420,12 @@ with an unsupported claim.
 The implementation is admissible only when all of these commands pass:
 
 ```bash
-uv sync --frozen --project projects/analytics-learning-labs
-uv run --project projects/analytics-learning-labs pytest
-uv run --project projects/analytics-learning-labs ruff check .
-uv run --project projects/analytics-learning-labs marimo check --strict apps/*.py
+uv sync --locked --project projects/analytics-learning-labs
+(cd projects/analytics-learning-labs && uv run --frozen pytest)
+(cd projects/analytics-learning-labs && uv run --frozen ruff check .)
+(cd projects/analytics-learning-labs && uv run --frozen marimo check --strict apps/*.py)
 python scripts/validate_wasm_export.py --package analytics_learning_labs <export-dir>
-python scripts/browser_smoke.py --scenario learning-labs --base-url <preview-url>
+python scripts/browser_smoke.py <preview-root> --scenario learning-labs --path <app-path>
 python tests/test_repository_only_portfolio.py
 ```
 
