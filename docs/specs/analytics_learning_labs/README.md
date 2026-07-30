@@ -498,23 +498,47 @@ of the private assessment implementation.
    local package named `analytics_learning_labs`.
 2. Runtime dependencies are direct, version-constrained, and compatible with
    Pyodide. No application imports another portfolio project or private module.
-3. Each executed WASM export contains exactly one wheel for the local package
-   and imports it successfully in Chromium.
-4. The root dependency inventory names every direct dependency, its purpose,
+3. The committed browser wheel is a pure-Python `py3-none-any` artifact built
+   from the reviewed `analytics_learning_labs` source. Its filename, version,
+   wheel SHA-256, source-tree SHA-256, and immutable source commit match
+   `browser-wheel-lock.json`.
+4. The lock URL belongs to `Saltiola7/data-portfolio`, uses a full lowercase
+   40-character commit, names the committed wheel exactly, and ends with a
+   `#sha256=` fragment in the PEP 508 requirement. Redirecting to a mutable
+   branch, tag, package index, local path, or VCS installer fails validation.
+5. Every app that imports `analytics_learning_labs` declares the lock's exact
+   PEP 508 requirement in PEP 723. A repository-local import without a matching
+   browser-installable dependency fails before export.
+6. Each executed WASM export contains exactly one importable wheel for the
+   shared package and imports it successfully in Chromium.
+7. The root dependency inventory names every direct dependency, its purpose,
    license, lock source, and browser/WASM boundary.
 
 ### CI, Molab, and deployment-preview evidence
 
 1. CI checks all five app paths explicitly or derives them from one committed
    registry; a partial loop is a failure.
-2. CI runs unit tests, Ruff, strict Marimo checks, executed HTML-WASM export,
-   local-wheel validation, and a Chromium journey for every app.
+2. CI runs unit tests, Ruff, strict Marimo checks, browser-wheel/source parity,
+   executed HTML-WASM export, package validation, and a Chromium journey for
+   every app.
 3. Durable README links use `blob/main`. Pre-merge Molab checks use the exact
    pushed 40-character commit SHA and do not mutate remote state.
-4. Before push, executed local WASM plus Chromium is deployment-preview
+4. A local export that discovers and bundles the checkout package does not
+   prove direct Molab import closure. The remote gate loads the exact public
+   URL and treats HTTP 200 as transport evidence only.
+5. Remote smoke observes every console severity and fails on
+   `ModuleNotFoundError`, `No module named`, `Traceback`,
+   `MarimoExceptionRaisedError`, `CellNotInitializedError`, `Ancestor raised`,
+   or any unallowlisted page or console error.
+6. Each remote app must expose `Success: analysis ready.`, fixture identity,
+   one primary table, and a numeric Seed control whose change updates both
+   fixture identity and table evidence under pandas 3.0.2.
+7. Before push, executed local WASM plus Chromium is deployment-preview
    evidence, not proof of public Molab availability.
-5. After push, public verification records the immutable commit URL and treats
-   an unavailable or erroring Molab route as a failed Deploy gate.
+8. After push, public verification records every immutable app URL and treats
+   an unavailable, shell-only, non-reactive, or erroring route as a failed
+   Deploy gate. After merge, the same journey passes through each durable
+   `blob/main` link before recruiter-facing use.
 
 ### Provenance, migration, and rollback
 
@@ -544,8 +568,10 @@ uv sync --locked --project projects/analytics-learning-labs
 (cd projects/analytics-learning-labs && uv run --frozen ruff check .)
 (cd projects/analytics-learning-labs && uv run --frozen ruff format --check .)
 (cd projects/analytics-learning-labs && uv run --frozen marimo check --strict apps/*.py)
+uv run --frozen python scripts/verify_browser_wheel.py
 uv run --frozen python scripts/validate_wasm_export.py <export-dir> --package analytics_learning_labs --dependency pandas==3.0.2
 uv run --frozen python scripts/browser_smoke.py <preview-root> --scenario learning-labs --path <app-path>
+uv run --frozen python scripts/browser_smoke.py --url <immutable-molab-url> --scenario learning-labs
 uv run --frozen pytest -q tests/test_repository_only_portfolio.py
 ```
 
