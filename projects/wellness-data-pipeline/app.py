@@ -1,11 +1,20 @@
+# /// script
+# requires-python = ">=3.12,<3.15"
+# dependencies = [
+#     "marimo==0.23.15",
+#     "pandas==3.0.5",
+# ]
+# ///
 """Interactive Marimo explorer for the synthetic wellness pipeline."""
 
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.23.15"
 app = marimo.App(width="full")
 
 with app.setup:
+    import html as _html
+
     import marimo as mo
 
     from wellness_data_pipeline import (
@@ -18,6 +27,44 @@ with app.setup:
         read_csv_upload,
         run_pipeline,
     )
+
+    def render_table(frame, caption, *, row_limit=200):
+        rows = frame.head(row_limit).to_dict(orient="records")
+        if not rows:
+            return mo.md("*No rows are available.*")
+
+        def _cell(value):
+            rendered = "" if value is None else str(value)
+            return _html.escape(rendered).replace("\n", "<br>")
+
+        header = "".join(
+            f'<th scope="col" style="text-align:left;padding:0.5rem;'
+            f'border-bottom:1px solid var(--sl-color-neutral-300)">{_cell(column)}</th>'
+            for column in frame.columns
+        )
+        body = "".join(
+            "<tr>"
+            + "".join(
+                f'<td style="vertical-align:top;padding:0.5rem;'
+                f'border-bottom:1px solid var(--sl-color-neutral-200)">'
+                f"{_cell(row.get(column, ''))}</td>"
+                for column in frame.columns
+            )
+            + "</tr>"
+            for row in rows
+        )
+        limit_note = (
+            f'<p style="margin-top:0.5rem">Showing first {row_limit} rows.</p>'
+            if len(frame) > row_limit
+            else ""
+        )
+        return mo.Html(
+            f'<div style="max-width:100%;overflow:auto;max-height:34rem">'
+            f'<table style="width:100%;border-collapse:collapse">'
+            f'<caption style="text-align:left;font-weight:600;padding:0.5rem 0">'
+            f"{_cell(caption)}</caption><thead><tr>{header}</tr></thead>"
+            f"<tbody>{body}</tbody></table>{limit_note}</div>"
+        )
 
 
 @app.cell
@@ -197,10 +244,9 @@ def _(pipeline_result):
         curated_view = mo.vstack(
             [
                 mo.md("## Curated participant-day table"),
-                mo.ui.table(
+                render_table(
                     pipeline_result.participant_days,
-                    label="Accepted participant-days",
-                    pagination=True,
+                    "Accepted participant-days",
                 ),
             ]
         )
@@ -217,10 +263,9 @@ def _(pipeline_result):
         rejected_view = mo.vstack(
             [
                 mo.md("## Rejected-record ledger"),
-                mo.ui.table(
+                render_table(
                     pipeline_result.rejected_records,
-                    label="Rejected records",
-                    pagination=True,
+                    "Rejected records",
                 ),
             ]
         )

@@ -19,5 +19,8 @@ title: Synthetic Wellness Data Pipeline Changelog
   downloads.
 - Added fail-closed UTF-8 parsing, a 10,000-row input limit, and
   spreadsheet-formula-safe CSV serialization after security review.
-- Locked the Python environment and passed 33 focused tests, curated Ruff
-  checks, strict Marimo validation, and executable HTML export.
+- Locked the Python environment and passed 34 focused tests, curated Ruff
+  checks, strict Marimo validation, executed WASM package validation, and a
+  Chromium seed-recomputation journey.
+- Added a synthetic-only committed session with stable source-hash validation;
+  volatile Marimo UI identifiers are not treated as source drift.

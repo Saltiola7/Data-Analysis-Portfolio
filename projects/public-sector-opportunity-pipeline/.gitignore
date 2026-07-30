@@ -1,0 +1,8 @@
+.marimo/
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+__marimo__/session/
+*.py[cod]
+public/

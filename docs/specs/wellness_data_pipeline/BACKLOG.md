@@ -12,7 +12,7 @@ last_updated: 2026-07-29
 | WELL-002 | Write red pipeline and fixture tests | P0 | completed | WELL-001 | project tests | project spec | no | Behavior evidence precedes implementation | M | Tests fail for missing implementation |
 | WELL-003 | Implement deterministic pipeline and synthetic fixture | P0 | completed | WELL-002 | project package and fixture | tests | no | Minimal implementation satisfies contracts | L | Focused pytest and Ruff pass |
 | WELL-004 | Build thin Marimo explorer | P1 | completed | WELL-003 | `app.py` | validated package and fixture | no | Interactive evidence must not duplicate domain logic | M | Strict check and smoke test pass |
-| WELL-005 | Add provenance, case study, and validation evidence | P1 | pending | WELL-004 | project documentation | passing project evidence | no | Recruiter claims must remain traceable | S | Claim and provenance review pass |
+| WELL-005 | Add provenance, case study, and validation evidence | P1 | completed | WELL-004 | project documentation | passing project evidence | no | Recruiter claims must remain traceable | S | Claim, provenance, WASM, and browser review pass |
 
 ## Completed
 
@@ -20,5 +20,6 @@ last_updated: 2026-07-29
 |---|---|---|
 | WELL-001 | 2026-07-29 | Approved specification |
 | WELL-002 | 2026-07-29 | Red tests for package, upload, row-limit, and export contracts |
-| WELL-003 | 2026-07-29 | 33 focused tests and curated Ruff checks pass |
+| WELL-003 | 2026-07-29 | 34 focused tests and curated Ruff checks pass |
 | WELL-004 | 2026-07-29 | Strict Marimo check and executable HTML export pass |
+| WELL-005 | 2026-07-29 | Provenance, case study, synthetic session, WASM package, and Chromium evidence |

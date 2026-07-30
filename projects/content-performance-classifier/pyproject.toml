@@ -1,0 +1,41 @@
+[project]
+name = "synthetic-content-performance-classifier"
+version = "0.1.0"
+description = "Synthetic leakage-aware content performance classifier and Marimo explorer"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "marimo>=0.23.15",
+    "numpy>=2.5",
+    "pandas>=3.0",
+    "scikit-learn>=1.9",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.11",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/content_performance_classifier"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 99
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "S", "UP", "RUF", "PL", "FURB"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/app.py" = ["B018", "PLC0415", "PLR0913", "PLR0917"]
+"tests/**" = ["PLR2004", "S101"]
+"src/content_performance_classifier/synthetic.py" = ["S311"]

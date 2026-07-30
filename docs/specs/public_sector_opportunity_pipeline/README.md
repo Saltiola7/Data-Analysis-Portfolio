@@ -2,7 +2,7 @@
 title: Public-sector Opportunity Pipeline
 status: approved
 type: flagship-project
-version: 1.0
+version: 1.1
 last_updated: 2026-07-29
 bounded_context: public_sector_opportunity_pipeline
 risk: routine
@@ -21,6 +21,9 @@ interactive Marimo view.
 
 ```mermaid
 graph TD
+    accTitle: Synthetic opportunity pipeline data flow
+    accDescr: Two fictional source contracts pass bounded adapters and normalization. Invalid rows enter a controlled ledger; accepted versions merge deterministically, receive transparent scores and audit hashes, and feed the Marimo explorer. Prefect invokes the same portable core.
+
     A["Synthetic source A"]
     B["Synthetic source B"]
     FETCH["Bounded fetch adapters"]
@@ -44,6 +47,13 @@ graph TD
     REJECT --> MARIMO
     AUDIT --> MARIMO
 ```
+
+**Text equivalent:** Two fictional source contracts pass bounded adapters and
+schema normalization. Invalid rows enter controlled dead letters. Accepted
+versions merge deterministically into canonical opportunities, then receive
+transparent additive scores and run-manifest hashes. Prefect invokes the same
+portable core, and the Marimo explorer reads its scored, rejected, and audit
+outputs.
 
 ## Domain
 
@@ -147,6 +157,7 @@ def run_prefect_pipeline(
 - Red tests cover source normalization, schema/date failure, duplicate
   determinism, stale-update protection, idempotency, watermark monotonicity,
   retry exhaustion, core/Prefect parity, scoring decomposition, and safe export.
-- Focused pytest and curated Ruff checks pass.
-- Strict Marimo check and executable HTML export pass.
+- Sixty-six focused tests, curated Ruff checks, strict Marimo validation,
+  executed WASM package validation, committed-session source identity, and a
+  Chromium preference-recomputation gate pass.
 - Privacy, provenance, and restricted-material scans pass.

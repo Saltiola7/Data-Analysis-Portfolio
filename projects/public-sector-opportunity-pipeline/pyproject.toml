@@ -1,0 +1,51 @@
+[project]
+name = "public-sector-opportunity-pipeline"
+version = "0.1.0"
+description = "Deterministic synthetic opportunity ingestion and ranking pipeline"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "marimo==0.23.15",
+    "pandas==3.0.5",
+]
+
+[project.optional-dependencies]
+orchestration = [
+    "prefect>=3.6,<4",
+]
+
+[dependency-groups]
+dev = [
+    "prefect>=3.6,<4",
+    "pytest>=8,<10",
+    "ruff>=0.11,<0.15",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = ["PLR0913"]
+select = [
+    "B",
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "FURB",
+    "I",
+    "PL",
+    "RUF",
+    "S",
+    "UP",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"app.py" = ["B018"]
+"tests/**" = ["PLR2004", "S101"]
+"public_sector_opportunity_pipeline/synthetic.py" = ["S311"]

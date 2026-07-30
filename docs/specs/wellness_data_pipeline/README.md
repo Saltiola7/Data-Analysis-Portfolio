@@ -2,7 +2,7 @@
 title: Synthetic Wellness Data Pipeline
 status: approved
 type: flagship-project
-version: 1.0
+version: 1.1
 last_updated: 2026-07-29
 bounded_context: wellness_data_pipeline
 risk: routine
@@ -21,6 +21,9 @@ materials.
 
 ```mermaid
 graph TD
+    accTitle: Synthetic wellness pipeline data flow
+    accDescr: Three fictional source grains pass schema validation and normalization. Valid records aggregate to a participant-day table, invalid records enter a controlled rejection ledger, and both feed deterministic audit evidence and a Marimo explorer.
+
     PEOPLE["Synthetic participants"]
     SIGNALS["Synthetic daily signals"]
     ACTIONS["Synthetic interventions"]
@@ -44,6 +47,32 @@ graph TD
     ACCEPTED --> MARIMO
     AUDIT --> MARIMO
 ```
+
+## Visual Evidence
+
+| Concern | Decision |
+|---|---|
+| Boundary | required: data-flow diagram above |
+| Interaction | not applicable: the pipeline is a deterministic synchronous transform |
+| State | not applicable: no persistent workflow state machine exists |
+| Data/trust | required: data-flow diagram above |
+| Schema | required: input and output grain tables below |
+| Dependency/deployment | not applicable: browser packaging is owned by the portfolio release spec |
+| Quantitative | not applicable: no design decision depends on a measured comparison |
+
+**Review question:** Can each accepted and rejected source row be traced to a
+single governed sink without changing participant-day grain?
+
+**Text equivalent:** Fictional participants, daily signals, and interventions
+enter schema validation. Valid rows pass unit normalization; interventions
+aggregate before joining so the curated table remains one row per participant
+and day. Invalid rows enter a controlled rejection ledger. Curated and rejected
+rows feed deterministic audit hashes, and the Marimo explorer reads the curated
+and audit outputs.
+
+Canonical source: this specification. Owner: repository owner. Change trigger:
+source grain, validation, normalization, aggregation, sink, or browser boundary
+changes.
 
 ## Domain
 
@@ -181,3 +210,6 @@ marimo check --strict projects/wellness-data-pipeline/app.py
 Required tests cover schema failure, unit conversion, invalid values, unknown
 participants, duplicates, join cardinality, idempotency, audit balance, input
 immutability, deterministic fixture generation, and notebook import.
+
+Current evidence: 34 focused tests plus strict Marimo, executed WASM package,
+committed-session source identity, and Chromium interaction gates.

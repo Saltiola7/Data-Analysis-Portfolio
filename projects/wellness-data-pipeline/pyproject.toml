@@ -3,10 +3,10 @@ name = "wellness-data-pipeline"
 version = "0.1.0"
 description = "Deterministic synthetic wellness data pipeline and Marimo explorer"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.15"
 dependencies = [
-    "marimo>=0.18.4",
-    "pandas>=2.2",
+    "marimo==0.23.15",
+    "pandas==3.0.5",
 ]
 
 [dependency-groups]

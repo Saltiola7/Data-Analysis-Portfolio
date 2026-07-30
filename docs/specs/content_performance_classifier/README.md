@@ -2,7 +2,7 @@
 title: Content Performance Classifier
 status: approved
 type: flagship-project
-version: 1.0
+version: 1.1
 last_updated: 2026-07-29
 bounded_context: content_performance_classifier
 risk: routine
@@ -47,10 +47,12 @@ Given a seed and row count, when the fixture is generated, then schema, values,
 labels, row order, and fixture identity are reproducible. Labels arise from a
 documented independent synthetic mechanism with bounded noise.
 
-### Compare against a baseline
+### Compare against a baseline without leaking partitions
 
-Given a labeled training split, when evaluation runs, then the majority-class
-baseline and fitted classifier are measured on the same untouched test split.
+Given training, validation, and reserved-test splits, when evaluation runs,
+then the majority-class baseline is fit from training labels, validation
+supports exploration, and reserved-test evidence uses only the
+validation-selected reporting threshold.
 
 ### Prevent target leakage
 
@@ -60,9 +62,10 @@ Identifier and split columns never become predictors.
 
 ### Tune a decision threshold without retraining
 
-Given test probabilities, when a visitor changes the threshold, then
-predictions and threshold-dependent metrics update while the fitted model,
-split, and probabilities remain unchanged.
+Given cached validation probabilities, when a visitor changes the threshold,
+then validation predictions and threshold-dependent metrics update while the
+fitted model, split identities, probabilities, and reserved-test reporting
+threshold remain unchanged.
 
 ### Expose uneven performance
 
@@ -109,12 +112,16 @@ The Marimo notebook is a thin adapter over these tested functions.
 - Required columns and value ranges fail closed before fitting.
 - The feature allowlist is immutable and excludes identifiers, labels, outcome
   proxies, free text, and split markers.
-- Train/test split is deterministic, stratified, and recorded.
+- The deterministic stratified split is 60% training, 20% validation, and 20%
+  reserved test, with partition identities recorded.
 - Preprocessing is fit only on the training split through one pipeline.
 - A fixed-seed logistic classifier is the transparent MVP model.
+- Validation-only threshold exploration selects one reporting threshold.
+- Reserved-test evidence uses that fixed threshold and never drives the slider
+  or threshold-selection rule.
 - Evaluation includes baseline accuracy, accuracy, balanced accuracy,
-  precision, recall, F1, ROC AUC, Brier score, confusion counts, and slice
-  support.
+  precision, recall, F1, ROC AUC, Brier score, confusion counts, calibration,
+  and slice support.
 - Undefined metrics use explicit zero-division behavior and remain visible.
 - The notebook states that synthetic performance does not estimate production
   uplift or external validity.
@@ -124,9 +131,11 @@ The Marimo notebook is a thin adapter over these tested functions.
 
 ## Validation
 
-- Red tests cover determinism, schema/range failure, leakage exclusion, split
-  stability, baseline comparison, threshold invariance, slice accounting,
-  hashes, input immutability, and safe export.
+- Twenty-seven focused tests cover determinism, schema/range failure, leakage
+  exclusion, three-way split stability, baseline comparison, validation-only
+  threshold selection, reserved-test invariance, slice accounting, hashes,
+  input immutability, and safe export.
 - Focused pytest and curated Ruff checks pass.
-- Strict Marimo check and executable HTML export pass.
+- Strict Marimo, executed WASM package, committed-session source identity, and
+  Chromium interaction gates pass.
 - Privacy, provenance, and restricted-material scans pass.

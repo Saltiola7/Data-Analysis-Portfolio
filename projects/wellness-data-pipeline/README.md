@@ -21,6 +21,7 @@ a rejected-record ledger, and content-addressed audit evidence.
 app.py                           Marimo explorer
 wellness_data_pipeline/          Tested domain package
 tests/                           Behavior and notebook-import tests
+__marimo__/session/app.py.json   Synthetic static preview
 PROVENANCE.md                    Data and clean-room provenance
 pyproject.toml                   Runtime and development metadata
 ```
@@ -48,7 +49,7 @@ and controlled safe detail. Raw uploaded rows are never copied into the ledger.
 From this directory:
 
 ```bash
-uv sync
+uv sync --locked
 uv run pytest -q
 uv run marimo edit app.py
 ```
@@ -58,6 +59,21 @@ Users may instead provide all three CSV inputs. Each upload is capped at 2 MB
 and 10,000 data rows, processed in the active notebook runtime, and never
 written or sent over a network by this app. Explicit CSV downloads neutralize
 spreadsheet formula prefixes in string cells.
+
+## Browser build
+
+The notebook carries exact PEP 723 browser dependencies. Marimo packages the
+local `wellness_data_pipeline` source as a wheel during export.
+
+```bash
+uv run marimo export html-wasm app.py \
+  -o build/wellness-data-pipeline \
+  --mode run --no-show-code --execute --force
+```
+
+The committed Marimo session contains only the bundled synthetic fixture.
+Release validation regenerates a fresh session, compares stable script and cell
+source hashes, and ignores volatile browser-control identifiers.
 
 ## Validation
 
@@ -73,6 +89,10 @@ uv run --project projects/wellness-data-pipeline ruff format --check \
 uv run --project projects/wellness-data-pipeline marimo check --strict \
   projects/wellness-data-pipeline/app.py
 ```
+
+Current evidence: 34 focused tests, strict Marimo validation, executed WASM
+package validation, and a Chromium interaction that changes the synthetic seed
+and observes recomputed evidence.
 
 ## Scope
 
