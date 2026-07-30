@@ -2,18 +2,25 @@
 
 ## Origin
 
-This project was created from a clean public specification on July 29, 2026.
-Implementation, tests, feature contract, narrative, and fixture generator were
-written for this repository.
+This project was independently implemented from a clean public specification
+on July 29, 2026. It generalizes classification and evaluation concepts from
+the owner's earlier data-science certification work and reframes them for
+synthetic content-performance evidence.
 
-No employer source, client material, certification assessment material, private
-repository history, personal data, screenshots, prompts, features, labels,
-taxonomies, thresholds, metrics, or credentials were used.
+No assessment prompt, supplied dataset, solution code, exact schema, feature
+set, label, threshold, metric, output, credential image, employer source,
+client material, private repository history, personal data, screenshot, or
+taxonomy was copied. Implementation, tests, feature contract, narrative, and
+fixture generator were written for this repository.
 
 ## Synthetic data
 
 All bundled rows come from `generate_synthetic_content`.
 
+- owner: Tommi Saltiola
+- source license: repository MIT license
+- generation timing: on demand; no generated dataset is committed
+- admission review date: `2026-07-29`
 - generator version: `content-performance-synthetic-v1`
 - default seed: `2026`
 - random generator: NumPy `default_rng`
@@ -53,6 +60,20 @@ review errors.
 
 Marimo may resolve a different Pyodide-compatible scientific-package build for
 the WASM export when the local exact build is unavailable in-browser. The
-generated browser artifact records that resolved environment; deterministic
-claims apply within one recorded environment rather than across different
-NumPy, pandas, or scikit-learn builds.
+exact live browser patch is not currently asserted. Deterministic claims apply
+to the locked host environment; the executed Chromium journey establishes
+browser compatibility, not cross-version numerical identity.
+
+## Privacy, redistribution, and retention
+
+Bundled fixture privacy classification is public synthetic data. Optional
+uploads are visitor-controlled runtime data; they are not admitted to source,
+session snapshots, or owner storage. Independently written source and
+documentation are redistributed under the repository MIT license. Generated
+rows and models are transient evidence unless the visitor explicitly downloads
+an artifact.
+
+The retained authority is generator, feature and split contracts, model and
+audit code, tests, hashes, locks, and this record. If lineage, privacy, or
+reserved-test integrity cannot be reproduced, the public demo link is removed
+until replacement evidence passes review.

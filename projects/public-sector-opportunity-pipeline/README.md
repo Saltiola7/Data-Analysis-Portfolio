@@ -94,8 +94,8 @@ uv run marimo export html-wasm app.py \
   --mode run --no-show-code --execute --force
 ```
 
-GitHub is the canonical source. A Molab deployment can clone this directory and
-run `app.py`; Pages and Molab are derived views. The committed Marimo session
+GitHub is the canonical source. Molab can clone this directory on demand and
+run `app.py` as a derived runtime. The committed Marimo session
 contains only the bundled fictional fixture. Release validation compares stable
 source hashes against a fresh session rather than volatile UI identifiers.
 

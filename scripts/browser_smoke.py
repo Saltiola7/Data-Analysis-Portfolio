@@ -1,4 +1,4 @@
-"""Exercise the release landing page and built Marimo WASM applications."""
+"""Exercise built Marimo WASM applications."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from playwright.sync_api import ConsoleMessage, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 TIMEOUT_MS = 180_000
-LOCAL_DEMO_COUNT = 3
 
 
 class BrowserSmokeError(RuntimeError):
@@ -66,48 +65,16 @@ def _assert_common_page_contracts(
     ).count()
     if unnamed_tables:
         raise BrowserSmokeError(f"page contains {unnamed_tables} unnamed table(s)")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.wait_for_timeout(500)
+    if page.evaluate(
+        "document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"
+    ):
+        raise BrowserSmokeError("page causes horizontal document overflow at 390px")
     if console_errors or page_errors:
         raise BrowserSmokeError(
             f"browser errors: console={console_errors!r}; page={page_errors!r}"
         )
-
-
-def _exercise_landing(page: Page, root: Path) -> None:
-    page.get_by_role(
-        "heading",
-        name="Cloud, data, and AI systems built for evidence.",
-        level=1,
-    ).wait_for(state="visible", timeout=TIMEOUT_MS)
-    page.get_by_role("main").wait_for(state="visible")
-    if page.get_by_role("navigation", name="Primary").count() != 1:
-        raise BrowserSmokeError("landing page must expose one named primary navigation")
-
-    internal_hrefs = page.locator('a[href^="./apps/"]').evaluate_all(
-        "(links) => [...new Set(links.map((link) => link.getAttribute('href')))]"
-    )
-    if len(internal_hrefs) != LOCAL_DEMO_COUNT:
-        raise BrowserSmokeError("landing page must link all three local browser demos")
-    for href in internal_hrefs:
-        if href is None:
-            raise BrowserSmokeError("local demo link is missing href")
-        target = root / href.removeprefix("./")
-        if not (target / "index.html").is_file():
-            raise BrowserSmokeError(f"local demo link has no built target: {href}")
-
-    page.keyboard.press("Tab")
-    if page.evaluate("document.activeElement?.textContent?.trim()") != "Skip to work":
-        raise BrowserSmokeError("skip link must be first keyboard focus")
-    page.keyboard.press("Enter")
-    if page.evaluate("document.activeElement?.id") != "work":
-        raise BrowserSmokeError("skip link must move focus to the work section")
-
-    page.set_viewport_size({"width": 390, "height": 844})
-    page.wait_for_timeout(100)
-    overflow = page.evaluate(
-        "document.documentElement.scrollWidth - document.documentElement.clientWidth"
-    )
-    if overflow > 1:
-        raise BrowserSmokeError(f"landing page overflows mobile viewport by {overflow}px")
 
 
 def _exercise_wellness(page: Page) -> None:
@@ -181,14 +148,72 @@ def _exercise_opportunity(page: Page) -> None:
     raise BrowserSmokeError("opportunity scoring did not react to remote preference")
 
 
+def _exercise_learning_lab(page: Page) -> None:
+    page.locator("h1").wait_for(state="visible", timeout=TIMEOUT_MS)
+    page.wait_for_timeout(10_000)
+    seed_label = page.locator("label").filter(has_text="Seed")
+    if seed_label.count() != 1 or seed_label.inner_text().strip() != "Seed":
+        raise BrowserSmokeError("learning lab must expose one visible Seed label")
+    seed_target = seed_label.get_attribute("for")
+    if not seed_target:
+        raise BrowserSmokeError("Seed label must identify its input")
+    seed = page.locator(f'input[id="{seed_target}"]')
+    if seed.count() != 1 or seed.get_attribute("inputmode") not in {
+        "decimal",
+        "numeric",
+    }:
+        raise BrowserSmokeError("Seed label must target one numeric input")
+    fixture_identity = page.locator('[data-testid="fixture-identity"]')
+    primary_table = page.get_by_role("table").first
+    seed.wait_for(state="visible", timeout=TIMEOUT_MS)
+    fixture_identity.wait_for(state="visible", timeout=TIMEOUT_MS)
+    primary_table.wait_for(state="visible", timeout=TIMEOUT_MS)
+    caption = primary_table.locator("caption")
+    if caption.count() != 1:
+        raise BrowserSmokeError("learning-lab primary table must expose one caption")
+
+    before_fixture = fixture_identity.inner_text()
+    before_table = primary_table.inner_text()
+    seed.fill("2027")
+    seed.press("Enter")
+
+    deadline = time.monotonic() + (TIMEOUT_MS / 1000)
+    while time.monotonic() < deadline:
+        normalized_seed = seed.input_value().replace(",", "")
+        if (
+            normalized_seed == "2027"
+            and fixture_identity.inner_text() != before_fixture
+            and primary_table.inner_text() != before_table
+            and "pandas=3.0.2" in fixture_identity.inner_text()
+        ):
+            break
+        page.wait_for_timeout(2_000)
+    else:
+        raise BrowserSmokeError(
+            "learning lab did not update under pandas 3.0.2 after the seed change"
+        )
+
+    seed.fill("")
+    seed.press("Enter")
+    page.get_by_text(
+        "Validation error: seed must be an integer from 0 to 999999",
+        exact=False,
+    ).first.wait_for(state="visible", timeout=TIMEOUT_MS)
+    if page.locator('table[data-testid="primary-table"]').count():
+        raise BrowserSmokeError("invalid seed retained partial primary-table evidence")
+    if "Validation error:" not in fixture_identity.inner_text():
+        raise BrowserSmokeError("invalid seed did not replace fixture identity")
+
+
 SCENARIOS: dict[str, Callable[[Page], None]] = {
     "wellness": _exercise_wellness,
     "classifier": _exercise_classifier,
     "opportunity": _exercise_opportunity,
+    "learning-labs": _exercise_learning_lab,
 }
 
 
-def _exercise(page: Page, url: str, scenario: str, root: Path) -> None:
+def _exercise(page: Page, url: str, scenario: str) -> None:
     console_errors: list[str] = []
     page_errors: list[str] = []
 
@@ -200,10 +225,12 @@ def _exercise(page: Page, url: str, scenario: str, root: Path) -> None:
     page.on("pageerror", lambda error: page_errors.append(str(error)))
     page.goto(url, wait_until="domcontentloaded", timeout=TIMEOUT_MS)
 
-    if scenario == "landing":
-        _exercise_landing(page, root)
-    else:
+    try:
         SCENARIOS[scenario](page)
+    except (BrowserSmokeError, PlaywrightTimeoutError) as error:
+        raise BrowserSmokeError(
+            f"{error}; console={console_errors!r}; page={page_errors!r}"
+        ) from error
     _assert_common_page_contracts(page, console_errors, page_errors)
 
 
@@ -212,7 +239,7 @@ def main() -> None:
     parser.add_argument("site_root", type=Path)
     parser.add_argument(
         "--scenario",
-        choices=["landing", *SCENARIOS],
+        choices=SCENARIOS,
         required=True,
     )
     parser.add_argument("--path", default="")
@@ -226,7 +253,7 @@ def main() -> None:
             try:
                 page = browser.new_page(viewport={"width": 1440, "height": 900})
                 page.emulate_media(reduced_motion="reduce")
-                _exercise(page, url, args.scenario, root)
+                _exercise(page, url, args.scenario)
             finally:
                 browser.close()
     finally:

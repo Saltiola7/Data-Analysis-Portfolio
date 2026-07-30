@@ -126,7 +126,8 @@ The Marimo notebook is a thin adapter over these tested functions.
 - The notebook states that synthetic performance does not estimate production
   uplift or external validity.
 - Uploaded data remains runtime-only; no network or persistence is used.
-- No DataCamp assessment material or employer-derived feature design enters the
+- No copied DataCamp prompt, supplied dataset, solution code, exact feature
+  design, label, threshold, metric, output, or credential image enters the
   repository.
 
 ## Validation

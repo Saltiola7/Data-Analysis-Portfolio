@@ -1,0 +1,22 @@
+{
+  "profile": "docs/specs/public_portfolio/README.md",
+  "gates": {
+    "domain": {"applicability": "required"},
+    "behavior": {"applicability": "required"},
+    "spec": {"applicability": "required"},
+    "contract": {"applicability": "required"},
+    "test_driven_implementation": {"applicability": "required"},
+    "refactor": {"applicability": "required"},
+    "review_integrate": {"applicability": "required"},
+    "release": {
+      "applicability": "not_applicable",
+      "reason": "Draft pull request updates source but publishes no versioned release."
+    },
+    "deploy": {"applicability": "required"},
+    "operate": {
+      "applicability": "not_applicable",
+      "reason": "Repository-only portfolio and on-demand Molab create no owner-operated service."
+    },
+    "maintain_retire": {"applicability": "required"}
+  }
+}

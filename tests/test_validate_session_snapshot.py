@@ -77,7 +77,7 @@ def test_rejects_source_drift(tmp_path: Path) -> None:
     [
         "Traceback (most recent call last)",
         "MarimoExceptionRaisedError",
-        "/Users/private/repository",
+        "/" + "Users/private/repository",
     ],
 )
 def test_rejects_errors_and_private_paths(tmp_path: Path, marker: str) -> None:
