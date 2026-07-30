@@ -18,7 +18,7 @@ delivery_intent: draft-pr
 | Accountable owner | Tommi Saltiola |
 | Public context | Supporting learning labs inside `Saltiola7/data-portfolio` |
 | Private inputs | Historical Jupyter notebooks and DataCamp assessment work used only for admission review |
-| Runtime | Python 3.12-3.14, Marimo 0.23.15, and pandas 3.0.5 |
+| Runtime | Python 3.12-3.14, Marimo 0.23.15, and Pyodide-compatible pandas 3.0.2 |
 | Package authority | Project `pyproject.toml` and `uv.lock` |
 | Public data | Deterministic synthetic fixtures only |
 | Browser delivery | GitHub-backed Molab `/wasm` links |
@@ -153,6 +153,33 @@ Given a learning lab has a parse error, failed cell, missing local package,
 private dependency, browser console error, or broken reactive control, when
 quality gates run, then the lab and its Molab link are not admitted.
 
+### Reject incomplete analytical dimensions
+
+Given a fixture has a null or blank analytical grouping value, a non-numeric
+measure dtype, or a nullable boolean value, when validation runs, then the
+fixture fails before aggregation can silently drop the record or change a
+denominator.
+
+### Expose restaurant exceptions on the default path
+
+Given the default restaurant fixture includes bounded missing-coordinate
+examples, when the app runs, then valid rows appear in the accepted table,
+missing-coordinate rows appear in the unresolved ledger, and both tables
+together account for every source record.
+
+### Keep the health demonstration non-circular
+
+Given fictional risk bands and ordinal scores are generated, when the health
+lab computes an association, then the risk band is not mechanically reconstructed
+from the same score composite and the result remains explicitly descriptive,
+synthetic, non-clinical, and non-causal.
+
+### Preserve host and browser dependency parity
+
+Given the app executes through Pyodide in WASM, when its environment and export
+are validated, then the project lock, every PEP 723 header, and resolved browser
+dependency evidence agree on pandas 3.0.2.
+
 ### Preserve portfolio hierarchy
 
 Given learning labs demonstrate earlier or narrower analytical work, when the
@@ -244,8 +271,8 @@ computing results.
 | Lab | Required columns | Canonical grain | Boundary rules |
 |---|---|---|---|
 | airline | `flight_id`, `carrier`, `route`, `arrival_delay_minutes`, `carrier_delay_minutes`, `late_aircraft_delay_minutes`, `cancelled` | unique `flight_id` | non-negative component delays; cancellation boolean; no person data |
-| cohort | `record_id`, `profile_key`, `age_band`, `exposure_score`, `genetic_risk_score`, `obesity_score`, `risk_band` | unique `record_id`; analysis deduplicates to `profile_key` | ordinal scores 0-10; declared fictional risk bands; no clinical inference |
-| restaurant | `record_id`, `location_label`, `country`, `region`, `latitude`, `longitude` | unique `record_id` | latitude -90..90 and longitude -180..180 after repair; unresolved rows retained |
+| cohort | `record_id`, `profile_key`, `age_band`, `exposure_score`, `genetic_risk_score`, `obesity_score`, `risk_band` | unique `record_id`; analysis deduplicates to `profile_key` | ordinal scores 0-10; fictional risk bands generated independently of the analyzed score composite; no clinical inference |
+| restaurant | `record_id`, `location_label`, `country`, `region`, `latitude`, `longitude` | unique `record_id` | resolved latitude -90..90 and longitude -180..180; bounded null coordinates are retained for the unresolved ledger |
 | streaming | `title_id`, `release_year`, `duration_minutes`, `genre`, `content_type` | unique `title_id` | plausible year and positive duration; fictional titles only |
 | sports | `event_id`, `athlete_id`, `team`, `continent`, `weight_class`, `medal` | unique `event_id` | no names; medal boolean; summaries preserve event grain |
 
@@ -256,7 +283,8 @@ No fixture is stored as a third-party dataset.
 
 Every app:
 
-1. carries PEP 723 dependencies for Marimo 0.23.15 and pandas 3.0.5;
+1. carries PEP 723 dependencies for Marimo 0.23.15 and pandas 3.0.2,
+   matching the project lock and resolved Pyodide browser package;
 2. exposes exactly one level-one heading and one labelled integer seed control;
 3. runs a deterministic default fixture without network or credentials;
 4. displays fixture identity, grain, limitations, metrics, and a captioned table;
@@ -291,8 +319,8 @@ https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analy
 Pre-merge verification uses the pushed 40-character commit SHA because
 slash-named feature branches are ambiguous in Molab routes. CI installs one
 locked learning-lab environment, checks all five apps strictly, executes each
-WASM export, validates the local package wheel, and runs one Chromium journey
-per app.
+WASM export, validates the local package wheel and exact pandas 3.0.2 browser
+resolution, and runs one Chromium journey per app.
 
 ### Ownership and dependency order
 
@@ -324,10 +352,12 @@ per app.
 ### Validation and analysis
 
 1. `validate_fixture` rejects missing required columns, empty frames, frames
-   above `maximum_rows`, duplicate grain keys, null grain keys, and values
-   outside the lab-specific boundaries. Raw restaurant coordinates are the
-   deliberate exception: structural validation admits them so analysis can
-   classify each row into accepted, repaired, or unresolved evidence.
+   above `maximum_rows`, duplicate grain keys, null grain keys, null or blank
+   analytical dimensions, nullable booleans, non-numeric measure dtypes, and
+   values outside the lab-specific boundaries. Restaurant latitude and
+   longitude are the deliberate null exception: bounded missing coordinates
+   are admitted so analysis can classify each row into accepted or unresolved
+   evidence.
 2. Analyses call `validate_fixture` before aggregation and never silently
    discard invalid records.
 3. Every `AnalysisResult.lab_slug` matches its contract, `grain` names the
@@ -335,11 +365,16 @@ per app.
 4. Primary and secondary tables preserve the declared analytical denominator.
    Where deduplication is intentional, the result names both source-record and
    unique-profile counts.
-5. Restaurant repair produces an explicit accepted table and unresolved ledger;
-   it never invents coordinates for an unresolved record.
+5. Restaurant analysis produces an explicit accepted table and unresolved
+   ledger, accounts for every source record exactly once, and never invents
+   coordinates for an unresolved record. The deterministic default fixture
+   exercises both paths.
 6. Health-lab output is descriptive educational evidence only. It does not
    diagnose, predict an individual's outcome, estimate treatment effect, imply
    causality, or recommend medical action.
+7. Fictional health risk bands are not derived deterministically from the exact
+   score composite used by the association. Undefined associations fail closed
+   instead of being converted to a numeric value.
 
 ### Marimo application behavior
 
@@ -423,10 +458,11 @@ The implementation is admissible only when all of these commands pass:
 uv sync --locked --project projects/analytics-learning-labs
 (cd projects/analytics-learning-labs && uv run --frozen pytest)
 (cd projects/analytics-learning-labs && uv run --frozen ruff check .)
+(cd projects/analytics-learning-labs && uv run --frozen ruff format --check .)
 (cd projects/analytics-learning-labs && uv run --frozen marimo check --strict apps/*.py)
-python scripts/validate_wasm_export.py --package analytics_learning_labs <export-dir>
-python scripts/browser_smoke.py <preview-root> --scenario learning-labs --path <app-path>
-python tests/test_repository_only_portfolio.py
+uv run --frozen python scripts/validate_wasm_export.py <export-dir> --package analytics_learning_labs --dependency pandas==3.0.2
+uv run --frozen python scripts/browser_smoke.py <preview-root> --scenario learning-labs --path <app-path>
+uv run --frozen pytest -q tests/test_repository_only_portfolio.py
 ```
 
 The repository may add command wrappers, but they must preserve these
