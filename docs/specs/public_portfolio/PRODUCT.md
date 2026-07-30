@@ -27,6 +27,9 @@ last_updated: 2026-07-30
 ## Success Evidence
 
 - three current repository flagships plus independent clean-room products
+- five synthetic supporting learning labs with source-backed Molab runtimes
+- certification competencies mapped to public successors without assessment disclosure
+- two owner-approved DataCamp certificate images with official verification links
 - useful browser demos requiring no owner-funded API
 - clean-room and provenance gates passing
 - keyboard-usable responsive pages and notebooks

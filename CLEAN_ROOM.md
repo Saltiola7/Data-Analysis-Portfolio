@@ -9,16 +9,18 @@ Allowed inputs:
 - documented public standards and open-source APIs
 - synthetic fixtures
 - explicitly redistributable datasets with recorded provenance
+- owner-approved issuer credential images with metadata review, public-purpose
+  provenance, and official verification links
 
 Forbidden inputs:
 
 - employer or client code, prompts, schemas, taxonomies, thresholds, data,
   screenshots, metrics, configuration, or Git history
-- DataCamp assessment prompts, supplied data, solution code, exact schemas,
-  expected outputs, or certificate screenshots
+- DataCamp assessment prompts, supplied data, solution code, exact schemas, or
+  expected outputs
 - SaaS Pegasus, Flowbite Premium, or other restricted source and assets
-- personal documents, health data, calendars, contacts, signatures, or
-  credential identifiers
+- unapproved personal documents, health data, calendars, contacts, signatures,
+  or private credential identifiers
 - credentials, private paths, store identifiers, or private infrastructure
 
 Every public project must record authorship, source lineage, data license,

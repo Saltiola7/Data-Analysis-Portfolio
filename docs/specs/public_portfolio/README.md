@@ -1,8 +1,8 @@
 ---
-title: Public Engineering Portfolio
+title: Public Data Portfolio
 status: approved
 type: product
-version: 1.2
+version: 1.3
 last_updated: 2026-07-30
 bounded_context: public_portfolio
 risk: elevated
@@ -10,7 +10,7 @@ delivery_intent: draft-pr
 product_intent: docs/specs/public_portfolio/PRODUCT.md
 ---
 
-# Public Engineering Portfolio
+# Public Data Portfolio
 
 ## Engineering Profile
 
@@ -98,6 +98,8 @@ project admission, validation, delivery, upload, or retention boundaries change.
 | clean root | Branch with no parent relationship to old public history |
 | legacy | Repaired historical work that passes current gates; empty initially |
 | clean-room successor | Independent implementation that generalizes a prior idea without copying restricted artifacts |
+| learning lab | Supporting synthetic Marimo demonstration below flagship status |
+| certification evidence map | Competency-to-successor trace that excludes assessment material |
 
 Entities:
 
@@ -106,6 +108,8 @@ Entities:
 - `MarimoApp`, identified by source path and commit
 - `Deployment`, identified by source commit and public URL
 - `ServiceOffer`, identified by product and scope version
+- `LearningLab`, identified by project slug and Marimo source path
+- `CertificationEvidenceMap`, identified by credential and public successor
 
 ## Behavior
 
@@ -118,7 +122,7 @@ flagship with traceable source and evidence.
 ### Reject contaminated material
 
 Given a candidate contains employer, client, restricted assessment prompt,
-assessment data, assessment solution code, personal, credential-image, or
+assessment data, assessment solution code, unapproved personal material, or
 unknown-license material, when admission runs, then publication fails and no
 public source or derived runtime includes it.
 
@@ -150,8 +154,10 @@ Pages URLs are absent while GitHub evidence and Molab links remain usable.
 - Every tracked path is intentionally authored or admitted.
 - No `node_modules`, private path, secret-like value, PII artifact, client
   identifier, or unknown-license dataset is reachable from clean-root history.
-- Raw assessment prompts, datasets, solutions, outputs, and certificate images
-  are excluded; official credential links may be used.
+- Raw assessment prompts, datasets, solutions, and outputs are excluded.
+  Owner-approved issuer certificate images may be used only after visible
+  content, metadata, checksums, provenance, and official verification links are
+  reviewed.
 - Every fixture has schema, grain, generator or source, license, and SHA-256.
 - Every notebook passes strict Marimo validation and fresh-clone execution.
 - Every README or project claim maps to code, tests, or an owner-approved fact.
@@ -164,20 +170,33 @@ Pages URLs are absent while GitHub evidence and Molab links remain usable.
 - Public integration identifies source SHA, rollback ref, compatibility, and
   CI health.
 
-## Initial Flagships
+## Portfolio Tiers
 
-1. Synthetic wellness data pipeline
-2. Content performance classifier
-3. Public-sector opportunity pipeline
-4. Search Taxonomy Lab, linked from its independent repository
-5. Content Evidence Workbench, linked from its independent repository
-6. DBSCTR Delivery Accelerator, linked from its canonical MIT repository
+Flagships:
 
-The raw DataCamp certification solutions and the legacy Netflix, judo, cancer,
-airline, and restaurant-location notebooks are not admitted. The first two
-flagships above are independently implemented synthetic successors to the
-strongest certification concepts. A restaurant-location data-quality app may
-enter a later cycle only after independent data and license provenance exist.
+1. Synthetic Wellness Data Pipeline
+2. Content Performance Classifier
+3. Public-sector Opportunity Pipeline
+
+Supporting learning labs:
+
+1. Airline Delay Quality Lab
+2. Synthetic Health Risk Quality Lab
+3. Restaurant Location Quality Lab
+4. Streaming Catalog Explorer
+5. Judo Medal Explorer
+
+Independent products and service evidence:
+
+1. Search Taxonomy Lab
+2. Content Evidence Workbench
+3. DBSCTR Delivery Accelerator
+
+Raw DataCamp certification solutions, assessment schemas, prompts, datasets,
+outputs, metrics, and legacy notebook source do not enter public history. The
+flagships and learning labs are independently implemented synthetic successors.
+The certification evidence map may describe broad competencies and point to
+public successors without reproducing assessment material.
 
 ## Validation
 
