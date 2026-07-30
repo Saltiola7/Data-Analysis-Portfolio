@@ -23,7 +23,7 @@ type ContentTarget = Page | Frame
 _RUNTIME_ERROR_MARKERS = (
     "modulenotfounderror",
     "no module named",
-    "traceback",
+    "traceback (most recent call last)",
     "marimoexceptionraisederror",
     "cellnotinitializederror",
     "ancestor raised",

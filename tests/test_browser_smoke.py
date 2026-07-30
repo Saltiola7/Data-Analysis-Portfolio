@@ -42,3 +42,7 @@ def test_remote_noise_allowlist_is_narrow_and_never_hides_runtime_errors(
 
 def test_unknown_console_error_is_not_allowlisted() -> None:
     assert not _is_allowed_remote_noise("Failed to load required application module")
+
+
+def test_normal_runtime_config_is_not_a_python_traceback() -> None:
+    assert not _is_runtime_error('{"runtime": {"show_tracebacks": false}}')
