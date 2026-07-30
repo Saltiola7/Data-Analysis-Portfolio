@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "cycle_id": "PORT-PUB-014",
+  "verified_commit": "cffe59b4c8a2f5b8c6b23d5e23e1b976e31f261d",
+  "verified_at": "2026-07-30T14:45:46Z",
+  "authority": "exact-sha-molab",
+  "evidence_id": "ev-06f2ba96f9b944b992bfe8504a38f5fd",
+  "result": "passed",
+  "required_observations": [
+    "live success, fixture identity, and primary table share one non-null kernel run",
+    "pandas 3.0.2 is visible in fixture identity",
+    "seed change updates fixture identity and primary table",
+    "invalid seed fails closed",
+    "no Python, Marimo, page, or unallowlisted console error is present"
+  ],
+  "apps": [
+    {
+      "name": "Airline Delay Quality Lab",
+      "url": "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/cffe59b4c8a2f5b8c6b23d5e23e1b976e31f261d/projects/analytics-learning-labs/apps/airline_delays.py/wasm"
+    },
+    {
+      "name": "Synthetic Health Risk Quality Lab",
+      "url": "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/cffe59b4c8a2f5b8c6b23d5e23e1b976e31f261d/projects/analytics-learning-labs/apps/synthetic_cohort.py/wasm"
+    },
+    {
+      "name": "Restaurant Location Quality Lab",
+      "url": "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/cffe59b4c8a2f5b8c6b23d5e23e1b976e31f261d/projects/analytics-learning-labs/apps/restaurant_locations.py/wasm"
+    },
+    {
+      "name": "Streaming Catalog Explorer",
+      "url": "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/cffe59b4c8a2f5b8c6b23d5e23e1b976e31f261d/projects/analytics-learning-labs/apps/streaming_catalog.py/wasm"
+    },
+    {
+      "name": "Judo Medal Explorer",
+      "url": "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/cffe59b4c8a2f5b8c6b23d5e23e1b976e31f261d/projects/analytics-learning-labs/apps/sports_outcomes.py/wasm"
+    }
+  ]
+}
