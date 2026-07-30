@@ -132,6 +132,21 @@ uploads, or private infrastructure, when the app starts, then a deterministic
 synthetic fixture produces a useful analysis, visible source identity, and no
 failed cell.
 
+### Install the shared package without a local checkout
+
+Given Molab fetches one app source file from GitHub and does not clone the
+repository, when Pyodide resolves the app's PEP 723 dependencies, then it
+installs the reviewed `analytics_learning_labs` wheel from an immutable
+40-character commit URL before the setup cell imports the package.
+
+### Reject a shell-only Molab response
+
+Given a Molab route returns HTTP 200 but a setup cell fails, when the public
+deployment gate runs, then the route fails admission unless the expected
+numeric Seed control, success state, fixture identity, primary table, and
+reactive seed change are all observed without application page or console
+errors.
+
 ### React without retaining visitor state
 
 Given a visitor changes a supported seed control, when Marimo recomputes, then
