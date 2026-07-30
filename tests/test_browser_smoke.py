@@ -8,6 +8,7 @@ from scripts.browser_smoke import (
     _has_live_learning_lab_evidence,
     _is_allowed_remote_noise,
     _is_runtime_error,
+    _wellness_seed_input,
 )
 
 
@@ -118,3 +119,23 @@ def test_live_learning_lab_gate_requires_one_executed_run() -> None:
     ]
 
     assert _has_live_learning_lab_evidence(console_messages)
+
+
+def test_wellness_seed_uses_the_single_numeric_input() -> None:
+    class NumericInput:
+        def count(self) -> int:
+            return 1
+
+    class Target:
+        def __init__(self) -> None:
+            self.selector = ""
+            self.numeric_input = NumericInput()
+
+        def locator(self, selector: str) -> NumericInput:
+            self.selector = selector
+            return self.numeric_input
+
+    target = Target()
+
+    assert _wellness_seed_input(target) is target.numeric_input
+    assert target.selector == 'input[inputmode="numeric"]'
