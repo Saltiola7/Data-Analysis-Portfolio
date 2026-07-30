@@ -236,22 +236,23 @@ jobs:
       - name: Exercise exact-SHA Molab routes in Chromium
         env:
           MOLAB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          MOLAB_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
         run: |
           uv run --frozen python scripts/browser_smoke.py \
             --scenario learning-labs \
-            --url "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/airline_delays.py/wasm"
+            --url "https://molab.marimo.io/github/${MOLAB_REPOSITORY}/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/airline_delays.py/wasm"
           uv run --frozen python scripts/browser_smoke.py \
             --scenario learning-labs \
-            --url "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/synthetic_cohort.py/wasm"
+            --url "https://molab.marimo.io/github/${MOLAB_REPOSITORY}/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/synthetic_cohort.py/wasm"
           uv run --frozen python scripts/browser_smoke.py \
             --scenario learning-labs \
-            --url "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/restaurant_locations.py/wasm"
+            --url "https://molab.marimo.io/github/${MOLAB_REPOSITORY}/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/restaurant_locations.py/wasm"
           uv run --frozen python scripts/browser_smoke.py \
             --scenario learning-labs \
-            --url "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/streaming_catalog.py/wasm"
+            --url "https://molab.marimo.io/github/${MOLAB_REPOSITORY}/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/streaming_catalog.py/wasm"
           uv run --frozen python scripts/browser_smoke.py \
             --scenario learning-labs \
-            --url "https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/sports_outcomes.py/wasm"
+            --url "https://molab.marimo.io/github/${MOLAB_REPOSITORY}/blob/${MOLAB_SHA}/projects/analytics-learning-labs/apps/sports_outcomes.py/wasm"
 
       - name: Scan critical vulnerabilities
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0

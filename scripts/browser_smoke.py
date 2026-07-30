@@ -52,7 +52,7 @@ def _is_allowed_remote_noise(message: str) -> bool:
         ("api.cr-relay.com", "403"),
         ("visitor id", "unavailable"),
         ("no visitor id available",),
-        ("load failed, error in settings",),
+        ("load failed, error in settings", "[https://molab.marimo.io/"),
         ("export_demos/wasm-intro.py", "404"),
     )
     return any(
@@ -78,6 +78,38 @@ def _serve(root: Path) -> tuple[http.server.ThreadingHTTPServer, str]:
     thread.start()
     host, port = server.server_address
     return server, f"http://{host}:{port}/"
+
+
+def _has_live_learning_lab_evidence(
+    console_messages: list[ConsoleRecord],
+) -> bool:
+    live_outputs = [message for _, message in console_messages if "cell-op" in message.casefold()]
+    return (
+        any("Success: analysis ready." in message for message in live_outputs)
+        and any("fixture-identity" in message for message in live_outputs)
+        and any("primary-table" in message for message in live_outputs)
+    )
+
+
+def _wait_for_live_learning_lab(
+    page: Page,
+    console_messages: list[ConsoleRecord],
+) -> None:
+    deadline = time.monotonic() + (TIMEOUT_MS / 1000)
+    while time.monotonic() < deadline:
+        runtime_errors = [
+            f"{severity}: {message}"
+            for severity, message in console_messages
+            if _is_runtime_error(message)
+        ]
+        if runtime_errors:
+            raise BrowserSmokeError(
+                f"learning-lab runtime failed before interaction: {runtime_errors!r}"
+            )
+        if _has_live_learning_lab_evidence(console_messages):
+            return
+        page.wait_for_timeout(500)
+    raise BrowserSmokeError("learning lab never emitted live success, fixture, and table evidence")
 
 
 def _wait_for_recompute(
@@ -317,6 +349,8 @@ def _exercise(page: Page, url: str, scenario: str, *, remote: bool = False) -> N
     content: ContentTarget = _remote_content_frame(page) if remote else page
 
     try:
+        if scenario == "learning-labs":
+            _wait_for_live_learning_lab(page, console_messages)
         SCENARIOS[scenario](content)
     except (BrowserSmokeError, PlaywrightTimeoutError) as error:
         raise BrowserSmokeError(

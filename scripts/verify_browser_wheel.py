@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import csv
 import hashlib
+import io
 import json
 import re
 import shutil
 import subprocess
 import zipfile
 from collections.abc import Mapping
+from email import policy
+from email.parser import BytesParser
 from pathlib import Path
 from typing import Any
 
@@ -48,6 +53,18 @@ PRIVATE_PATTERNS = (
     re.compile(rb"[A-Za-z]:\\\\Users\\\\[^\\\s\"']+"),
     re.compile(rb"(?:sk|ghp|xox[baprs])-[A-Za-z0-9_-]{12,}"),
 )
+EXPECTED_METADATA = {
+    "Metadata-Version": "2.4",
+    "Name": DISTRIBUTION,
+    "Version": VERSION,
+    "Summary": "Five deterministic synthetic analytics learning labs for Marimo",
+    "Requires-Python": "<3.15,>=3.12",
+}
+EXPECTED_REQUIREMENTS = {
+    "marimo==0.23.15",
+    "pandas==3.0.2",
+}
+RECORD_FIELD_COUNT = 3
 
 
 class BrowserWheelValidationError(RuntimeError):
@@ -187,6 +204,32 @@ def _validate_lock(lock: Mapping[str, Any]) -> tuple[str, str]:
     return expected_url, expected_requirement
 
 
+def _validate_package_sources(
+    contents: Mapping[str, bytes],
+    committed_sources: Mapping[str, bytes],
+) -> None:
+    for relative_path, expected_content in committed_sources.items():
+        member = f"{PACKAGE}/{relative_path}"
+        if contents[member] != expected_content:
+            raise BrowserWheelValidationError(f"browser wheel source differs at {relative_path}")
+
+
+def _validate_distribution_metadata(contents: Mapping[str, bytes]) -> None:
+    metadata_member = f"{PACKAGE}-{VERSION}.dist-info/METADATA"
+    metadata = BytesParser(policy=policy.default).parsebytes(contents[metadata_member])
+    for header, expected_value in EXPECTED_METADATA.items():
+        if metadata.get(header) != expected_value:
+            raise BrowserWheelValidationError(f"browser wheel metadata differs for {header}")
+    if set(metadata.get_all("Requires-Dist", [])) != EXPECTED_REQUIREMENTS:
+        raise BrowserWheelValidationError("browser wheel metadata dependencies differ")
+
+    wheel_metadata = contents[f"{PACKAGE}-{VERSION}.dist-info/WHEEL"].decode("utf-8")
+    if "Root-Is-Purelib: true" not in wheel_metadata:
+        raise BrowserWheelValidationError("browser wheel is not pure Python")
+    if "Tag: py3-none-any" not in wheel_metadata:
+        raise BrowserWheelValidationError("browser wheel is not Pyodide-compatible")
+
+
 def _validate_archive(
     wheel_path: Path,
     committed_sources: Mapping[str, bytes],
@@ -197,35 +240,69 @@ def _validate_archive(
     expected_members = expected_package_members | DIST_INFO_MEMBERS
     try:
         with zipfile.ZipFile(wheel_path) as archive:
-            names = set(archive.namelist())
-            if names != expected_members:
+            infos = archive.infolist()
+            names = [info.filename for info in infos]
+            if len(names) != len(set(names)):
+                raise BrowserWheelValidationError(
+                    "browser wheel contains duplicate archive members"
+                )
+            if set(names) != expected_members:
                 raise BrowserWheelValidationError(
                     "browser wheel member set differs from reviewed package and metadata"
                 )
-            for info in archive.infolist():
+            contents: dict[str, bytes] = {}
+            for info in infos:
                 mode = (info.external_attr >> 16) & 0o777
                 if mode & 0o111:
                     raise BrowserWheelValidationError(
                         f"browser wheel contains executable member: {info.filename}"
                     )
                 content = archive.read(info)
+                contents[info.filename] = content
                 if any(pattern.search(content) for pattern in PRIVATE_PATTERNS):
                     raise BrowserWheelValidationError(
                         f"browser wheel contains private material: {info.filename}"
                     )
-            for relative_path, expected_content in committed_sources.items():
-                member = f"{PACKAGE}/{relative_path}"
-                if archive.read(member) != expected_content:
-                    raise BrowserWheelValidationError(
-                        f"browser wheel source differs at {relative_path}"
-                    )
-            wheel_metadata = archive.read(f"{PACKAGE}-{VERSION}.dist-info/WHEEL").decode("utf-8")
-            if "Root-Is-Purelib: true" not in wheel_metadata:
-                raise BrowserWheelValidationError("browser wheel is not pure Python")
-            if "Tag: py3-none-any" not in wheel_metadata:
-                raise BrowserWheelValidationError("browser wheel is not Pyodide-compatible")
+            _validate_package_sources(contents, committed_sources)
+            _validate_distribution_metadata(contents)
+            _validate_record(contents)
     except zipfile.BadZipFile as exc:
         raise BrowserWheelValidationError("browser wheel is not a valid ZIP archive") from exc
+
+
+def _record_hash(content: bytes) -> str:
+    digest = hashlib.sha256(content, usedforsecurity=False).digest()
+    encoded = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+    return f"sha256={encoded}"
+
+
+def _validate_record(contents: Mapping[str, bytes]) -> None:
+    record_member = f"{PACKAGE}-{VERSION}.dist-info/RECORD"
+    try:
+        rows = list(
+            csv.reader(
+                io.StringIO(contents[record_member].decode("utf-8")),
+                strict=True,
+            )
+        )
+    except (csv.Error, UnicodeDecodeError) as exc:
+        raise BrowserWheelValidationError("browser wheel RECORD is malformed") from exc
+    if any(len(row) != RECORD_FIELD_COUNT for row in rows):
+        raise BrowserWheelValidationError("browser wheel RECORD row is malformed")
+    record = {path: (digest, size) for path, digest, size in rows}
+    if len(record) != len(rows) or set(record) != set(contents):
+        raise BrowserWheelValidationError("browser wheel RECORD member set differs")
+
+    for path, content in contents.items():
+        digest, size = record[path]
+        if path == record_member:
+            if digest or size:
+                raise BrowserWheelValidationError(
+                    "browser wheel RECORD must leave its own hash and size empty"
+                )
+            continue
+        if digest != _record_hash(content) or size != str(len(content)):
+            raise BrowserWheelValidationError(f"browser wheel RECORD integrity differs for {path}")
 
 
 def validate_browser_wheel(project_root: Path, repo_root: Path) -> None:
@@ -250,8 +327,19 @@ def validate_browser_wheel(project_root: Path, repo_root: Path) -> None:
     wheel_path = project_root / "browser_wheels" / lock["filename"]
     if not wheel_path.is_file():
         raise BrowserWheelValidationError(f"browser wheel is missing: {wheel_path}")
-    if _sha256_file(wheel_path) != lock["wheel_sha256"]:
+    wheel_content = wheel_path.read_bytes()
+    if _sha256_bytes(wheel_content) != lock["wheel_sha256"]:
         raise BrowserWheelValidationError("browser wheel SHA-256 differs from lock")
+    committed_wheel_path = (PROJECT_RELATIVE / "browser_wheels" / lock["filename"]).as_posix()
+    committed_wheel = _run_git(
+        repo_root,
+        "show",
+        f"{source_commit}:{committed_wheel_path}",
+    )
+    if committed_wheel != wheel_content:
+        raise BrowserWheelValidationError(
+            "working browser wheel differs from immutable source_commit"
+        )
     _validate_archive(wheel_path, committed_sources)
 
     expected_header_line = f'#     "{expected_requirement}",'

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from scripts.browser_smoke import _is_allowed_remote_noise, _is_runtime_error
+from scripts.browser_smoke import (
+    _has_live_learning_lab_evidence,
+    _is_allowed_remote_noise,
+    _is_runtime_error,
+)
 
 
 @pytest.mark.parametrize(
@@ -29,7 +33,7 @@ def test_runtime_error_classifier_rejects_notebook_failures(message: str) -> Non
         "Failed to load resource: api.cr-relay.com returned 403",
         "visitor ID unavailable for telemetry",
         "No visitor ID available. Load may have failed.",
-        "Load failed, error in settings",
+        "Load failed, error in settings [https://molab.marimo.io/_next/chunk.js]",
         "export_demos/wasm-intro.py returned 404",
     ],
 )
@@ -42,7 +46,29 @@ def test_remote_noise_allowlist_is_narrow_and_never_hides_runtime_errors(
 
 def test_unknown_console_error_is_not_allowlisted() -> None:
     assert not _is_allowed_remote_noise("Failed to load required application module")
+    assert not _is_allowed_remote_noise("Load failed, error in settings")
 
 
 def test_normal_runtime_config_is_not_a_python_traceback() -> None:
     assert not _is_runtime_error('{"runtime": {"show_tracebacks": false}}')
+
+
+def test_live_learning_lab_gate_rejects_static_source_literals() -> None:
+    console_messages = [
+        (
+            "debug",
+            'startSession {"code":"Success: analysis ready. fixture-identity primary-table"}',
+        )
+    ]
+
+    assert not _has_live_learning_lab_evidence(console_messages)
+
+
+def test_live_learning_lab_gate_requires_executed_evidence_cells() -> None:
+    console_messages = [
+        ("debug", 'kernelMessage {"op":"cell-op","data":"Success: analysis ready."}'),
+        ("debug", 'kernelMessage {"op":"cell-op","data":"fixture-identity"}'),
+        ("debug", 'kernelMessage {"op":"cell-op","data":"primary-table"}'),
+    ]
+
+    assert _has_live_learning_lab_evidence(console_messages)
