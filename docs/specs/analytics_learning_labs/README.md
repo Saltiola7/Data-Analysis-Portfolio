@@ -40,6 +40,8 @@ Applicable DBSCTR modules: Python, Security, Data, Analytics, and Web.
 | public credential image | Owner-approved issuer certificate carrying public professional identity and verification ID |
 | synthetic fixture | Deterministic fictional data with no person, client, employer, course, or licensed-dataset record |
 | evidence gate | Automated or reviewed proof that source, execution, claims, provenance, privacy, and browser behavior pass |
+| browser package artifact | Pure-Python wheel built from the reviewed shared package and fetchable by Pyodide without a local checkout |
+| dependency anchor | Immutable 40-character repository commit embedded in an app's PEP 723 wheel URL |
 
 Entities:
 
@@ -48,6 +50,8 @@ Entities:
 - `AnalysisResult`, identified by lab, fixture identity, and analysis version
 - `SourceLineage`, identified by private source name and public successor
 - `MolabRuntime`, identified by repository commit and app path
+- `BrowserPackageArtifact`, identified by distribution name, version, wheel
+  hash, source-tree hash, and immutable repository URL
 - `PublicCredential`, identified by issuer, credential ID, image hash, and official verification URL
 
 Private sources remain evidence for admission decisions, not public dependencies
@@ -69,6 +73,7 @@ flowchart LR
     SOURCE["New Marimo app, analysis code, tests, and prose"]
     GATES["Privacy, provenance, execution, WASM, and browser gates"]
     GITHUB["Canonical GitHub source"]
+    WHEEL["Immutable browser package wheel"]
     MOLAB["On-demand Molab /wasm runtime"]
 
     PRIVATE --> AUDIT
@@ -79,7 +84,9 @@ flowchart LR
     FIXTURE --> GATES
     SOURCE --> GATES
     GATES --> GITHUB
+    GITHUB --> WHEEL
     GITHUB --> MOLAB
+    WHEEL --> MOLAB
 ```
 
 | Concern | Decision |
@@ -99,8 +106,11 @@ records, broken converted code, or unsupported conclusions?
 **Text equivalent:** Private historical notebooks and certification files are
 read only during a local audit. Only a general theme or competency may cross the
 clean-room boundary. Every public lab receives newly written code, synthetic
-fixtures, tests, prose, and conclusions. Privacy, provenance, execution, WASM,
-and browser gates must pass before canonical GitHub source gains a Molab link.
+fixtures, tests, prose, and conclusions. The reviewed shared package is also
+built as a pure-Python wheel anchored to an immutable repository commit so
+Molab can install it without a local checkout. Privacy, provenance, execution,
+WASM, and browser gates must pass before canonical GitHub source gains a Molab
+link.
 
 Canonical source: this specification. Owner: repository owner. Change trigger:
 source-admission, fixture, schema, app, validation, or delivery boundaries

@@ -8,6 +8,7 @@ last_updated: 2026-07-30
 
 | id | title | priority | status | depends_on | owns | reads | parallel_safe | reason | effort | validation |
 |---|---|---|---|---|---|---|---|---|---|---|
+| LAB-009 | Repair direct Molab package installation | P0 | in_progress | LAB-008 | immutable wheel, PEP 723 anchors, remote runtime gate | shared package, five apps, deployment evidence | no | Direct Molab routes fail because a GitHub file preview has no local package checkout | M | all five public runtimes import, render, and recompute |
 
 ## Completed
 
