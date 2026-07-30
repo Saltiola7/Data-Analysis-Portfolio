@@ -1,0 +1,194 @@
+name: Quality and Pages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: Install locked environments
+        run: |
+          uv sync --locked
+          uv sync --project projects/wellness-data-pipeline --locked
+          uv sync --project projects/content-performance-classifier --locked
+          uv sync --project projects/public-sector-opportunity-pipeline --locked
+
+      - name: Validate release tools
+        run: |
+          uv run --frozen pytest -q
+          uv run --frozen ruff check scripts tests
+          uv run --frozen ruff format --check scripts tests
+
+      - name: Validate wellness data pipeline
+        run: |
+          cd projects/wellness-data-pipeline
+          uv run --frozen pytest -q
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+          uv run --frozen marimo check --strict app.py
+
+      - name: Validate content performance classifier
+        run: |
+          cd projects/content-performance-classifier
+          uv run --frozen pytest -q
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+          uv run --frozen marimo check --strict src/app.py
+
+      - name: Validate public-sector opportunity pipeline
+        run: |
+          cd projects/public-sector-opportunity-pipeline
+          uv run --frozen pytest -q
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+          uv run --frozen marimo check --strict app.py
+
+      - name: Validate reproducible static previews
+        run: |
+          mkdir -p "${RUNNER_TEMP}/committed-sessions"
+
+          cp projects/wellness-data-pipeline/__marimo__/session/app.py.json \
+            "${RUNNER_TEMP}/committed-sessions/wellness.json"
+          (
+            cd projects/wellness-data-pipeline
+            uv run --frozen marimo export session app.py \
+              --force-overwrite --no-continue-on-error
+          )
+          uv run --frozen python scripts/validate_session_snapshot.py \
+            "${RUNNER_TEMP}/committed-sessions/wellness.json" \
+            --fresh projects/wellness-data-pipeline/__marimo__/session/app.py.json \
+            --marker "Synthetic Wellness Data Pipeline" \
+            --marker "Deterministic synthetic fixture processed."
+
+          cp projects/content-performance-classifier/src/__marimo__/session/app.py.json \
+            "${RUNNER_TEMP}/committed-sessions/classifier.json"
+          (
+            cd projects/content-performance-classifier
+            uv run --frozen marimo export session src/app.py \
+              --force-overwrite --no-continue-on-error
+          )
+          uv run --frozen python scripts/validate_session_snapshot.py \
+            "${RUNNER_TEMP}/committed-sessions/classifier.json" \
+            --fresh projects/content-performance-classifier/src/__marimo__/session/app.py.json \
+            --marker "Content Performance Classifier" \
+            --marker "Reserved test evidence"
+
+          cp projects/public-sector-opportunity-pipeline/__marimo__/session/app.py.json \
+            "${RUNNER_TEMP}/committed-sessions/opportunity.json"
+          (
+            cd projects/public-sector-opportunity-pipeline
+            uv run --frozen marimo export session app.py \
+              --force-overwrite --no-continue-on-error
+          )
+          uv run --frozen python scripts/validate_session_snapshot.py \
+            "${RUNNER_TEMP}/committed-sessions/opportunity.json" \
+            --fresh \
+            projects/public-sector-opportunity-pipeline/__marimo__/session/app.py.json \
+            --marker "Public-sector Opportunity Pipeline" \
+            --marker "Transparent opportunity ranking"
+
+      - name: Build and validate browser-only demos
+        run: |
+          mkdir -p "${RUNNER_TEMP}/site/apps"
+          cp -R site/. "${RUNNER_TEMP}/site/"
+
+          (
+            cd projects/wellness-data-pipeline
+            uv run --frozen marimo export html-wasm app.py \
+              --output "${RUNNER_TEMP}/site/apps/wellness-data-pipeline" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/wellness-data-pipeline" \
+            --package wellness_data_pipeline
+
+          (
+            cd projects/content-performance-classifier
+            uv run --frozen marimo export html-wasm src/app.py \
+              --output "${RUNNER_TEMP}/site/apps/content-performance-classifier" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/content-performance-classifier" \
+            --package content_performance_classifier
+
+          (
+            cd projects/public-sector-opportunity-pipeline
+            uv run --frozen marimo export html-wasm app.py \
+              --output "${RUNNER_TEMP}/site/apps/public-sector-opportunity-pipeline" \
+              --mode run --no-show-code --execute --force
+          )
+          uv run --frozen python scripts/validate_wasm_export.py \
+            "${RUNNER_TEMP}/site/apps/public-sector-opportunity-pipeline" \
+            --package public_sector_opportunity_pipeline
+
+      - name: Exercise release in Chromium
+        run: |
+          uv run --frozen playwright install --with-deps chromium
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario landing
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario wellness --path apps/wellness-data-pipeline/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario classifier --path apps/content-performance-classifier/
+          uv run --frozen python scripts/browser_smoke.py "${RUNNER_TEMP}/site" \
+            --scenario opportunity --path apps/public-sector-opportunity-pipeline/
+
+      - name: Scan critical vulnerabilities
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          path: "."
+          fail-build: true
+          severity-cutoff: critical
+
+      - name: Generate dependency SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: "."
+          artifact-name: data-portfolio.spdx.json
+          format: spdx-json
+          upload-artifact: true
+          upload-release-assets: false
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

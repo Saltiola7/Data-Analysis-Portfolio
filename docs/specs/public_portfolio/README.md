@@ -2,7 +2,7 @@
 title: Public Engineering Portfolio
 status: approved
 type: product
-version: 1.0
+version: 1.1
 last_updated: 2026-07-29
 bounded_context: public_portfolio
 risk: elevated
@@ -17,12 +17,12 @@ product_intent: docs/specs/public_portfolio/PRODUCT.md
 | Field | Contract |
 |---|---|
 | Accountable owner | Tommi Saltiola |
-| Canonical source | Existing `Data-Analysis-Portfolio` GitHub repository after approved replacement |
+| Intended canonical source | `Saltiola7/data-portfolio` after explicit release approval |
 | Working branch | Local orphan `codex/clean-root` |
-| Runtime | Python 3.12+ and one pinned Marimo version |
+| Runtime | Python 3.12-3.14 and Marimo 0.23.15 |
 | Package authority | `pyproject.toml` and `uv.lock` |
 | Public data | Synthetic or explicitly redistributable only |
-| Browser delivery | GitHub Pages WASM and GitHub-backed Molab |
+| Browser delivery | Prepared GitHub Pages WASM and GitHub-backed Molab |
 | Accessibility | WCAG 2.2 AA |
 | Validation | pytest, Ruff, strict Marimo check, export smoke, browser review, privacy and provenance audits |
 | Security owner | Repository owner |
@@ -36,20 +36,55 @@ Cloud for deployment preparation.
 
 ```mermaid
 graph TD
+    accTitle: Clean portfolio source, validation, and browser delivery
+    accDescr: Owner-authored projects and synthetic fixtures enter clean GitHub source. CI validates source before GitHub Pages delivery. Molab reads the same source. Runtime visitor uploads remain in browser memory and are never sent to an owner backend.
+
+    AUTHOR["Owner-authored projects"]
+    FIXTURES["Synthetic fixtures"]
     SRC["Clean GitHub source"]
-    PROJECTS["Flagship project code and synthetic fixtures"]
     CI["Tests, Marimo, privacy, provenance, accessibility"]
     PAGES["GitHub Pages WASM"]
     MOLAB["GitHub-backed Molab"]
     VISITOR["Recruiter or client"]
+    UPLOAD["Optional visitor upload"]
+    MEMORY["Active browser/runtime memory"]
+    DOWNLOAD["Explicit visitor download"]
 
-    PROJECTS --> SRC
+    AUTHOR --> SRC
+    FIXTURES --> SRC
     SRC --> CI
     CI --> PAGES
     SRC --> MOLAB
     PAGES --> VISITOR
     MOLAB --> VISITOR
+    VISITOR --> UPLOAD
+    UPLOAD --> MEMORY
+    MEMORY --> DOWNLOAD
 ```
+
+## Visual Evidence
+
+| Concern | Decision |
+|---|---|
+| Boundary | required: architecture and trust-boundary flow above |
+| Interaction | not applicable: individual project specs own interactive behavior |
+| State | not applicable: publication approval is a gate, not a runtime state machine |
+| Data/trust | required: architecture and trust-boundary flow above |
+| Schema | not applicable: project specs own persistent and tabular schemas |
+| Dependency/deployment | required: architecture and trust-boundary flow above |
+| Quantitative | not applicable: no portfolio decision depends on a measured comparison |
+
+**Review question:** Can public source reach a visitor only through validated
+derived views, while visitor uploads remain outside owner storage?
+
+**Text equivalent:** Owner-authored projects and synthetic fixtures enter clean
+GitHub source. CI validates that source before building GitHub Pages. Molab
+reads the same GitHub source. A visitor can optionally place a bounded upload in
+the active browser or notebook runtime and explicitly download derived output;
+no owner backend receives or retains it.
+
+Canonical source: this specification. Owner: repository owner. Change trigger:
+project admission, validation, delivery, upload, or retention boundaries change.
 
 ## Domain
 
@@ -126,14 +161,17 @@ then the existing remote `main` remains unchanged.
 ## Validation
 
 ```bash
-pytest
-ruff check .
-ruff format --check .
-marimo check --strict <notebook>
+uv run --frozen pytest -q
+uv run --frozen ruff check scripts tests
+uv run --frozen ruff format --check scripts tests
+uv run --frozen python scripts/validate_wasm_export.py <export> --package <package>
+uv run --frozen python scripts/browser_smoke.py <site> --scenario <journey>
 ```
 
-Release adds clean-history scanning, WASM export, browser smoke, accessibility,
-responsive-layout, link, and source-SHA checks.
+Project-local locked environments run focused pytest, Ruff, strict Marimo,
+session-source, and executed WASM gates. Release also adds clean-history,
+privacy, browser semantics, keyboard, responsive-layout, interaction,
+vulnerability, SBOM, and source-identity checks.
 
 ## Gate Ledger
 
@@ -150,4 +188,3 @@ responsive-layout, link, and source-SHA checks.
 | Deploy | separate cycle | No environment change in local build cycle |
 | Operate | separate cycle | No running owner service in local build cycle |
 | Maintain/Retire | required | Support, dependency, data, and retirement obligations documented |
-

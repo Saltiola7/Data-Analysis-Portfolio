@@ -1,54 +1,94 @@
 # Cloud, Data, and AI Platform Portfolio
 
-Public engineering portfolio by Tommi Saltiola.
+Clean-room engineering portfolio by [Tommi Saltiola](https://www.linkedin.com/in/tommisaltiola/).
 
-Focus:
+Primary fit:
 
-- SEO/AEO and agentic AI systems
-- cloud and data platforms
-- production-grade analytics and ML workflows
-- test-driven, evidence-gated autonomous delivery
+1. SEO/AEO Platform Engineer
+2. Agentic AI Engineer
+3. AI Platform Engineer
+4. Forward Deployed Engineer for AI platforms
+5. Cloud/Data Platform Engineer
 
-This repository is being rebuilt from an allowlisted clean root. Every public
-project uses synthetic or redistributable data, documents provenance, and runs
-without private infrastructure.
+The work emphasizes hands-on implementation: search intelligence, autonomous
+workflows, cloud and data foundations, orchestration, observability, and
+evidence-gated delivery.
 
-## Projects
+## Flagship projects
 
-The first local flagship is the
-[Synthetic Wellness Data Pipeline](projects/wellness-data-pipeline/README.md):
-a deterministic, schema-governed data pipeline with synthetic fixtures,
-rejected-record evidence, content hashes, a bounded Marimo explorer, and 33
-focused tests.
+| Project | Engineering evidence | Tests |
+|---|---|---:|
+| [Synthetic Wellness Data Pipeline](projects/wellness-data-pipeline/README.md) | Three source grains, schema and grain contracts, dead letters, deterministic hashes, bounded uploads, Marimo WASM | 34 |
+| [Content Performance Classifier](projects/content-performance-classifier/README.md) | Leakage-safe train/validation/reserved-test design, calibration, slice evidence, threshold governance, privacy-bounded exports | 27 |
+| [Public-sector Opportunity Pipeline](projects/public-sector-opportunity-pipeline/README.md) | Heterogeneous ingestion, deterministic incremental merge, watermarks, retries, Prefect boundary, transparent scoring | 66 |
 
-Every project includes:
+All three projects use only deterministic fictional data and pass focused tests,
+Ruff, strict Marimo checks, executed WASM export validation, and real-browser
+interaction smoke tests.
 
-- problem and architecture
-- executable Marimo source
-- synthetic fixtures
-- tests and validation evidence
-- limitations and production evolution
-- GitHub Pages and Molab demo links where browser execution fits
+## Clean-room products
 
-## Related Products
+Two independent repositories turn deeper search and knowledge-system patterns
+into public demonstrations without employer-code reuse:
 
-Separate clean-room repositories will host:
+- [Search Taxonomy Lab](https://github.com/Saltiola7/search-taxonomy-lab) —
+  TF-IDF and latent-semantic evidence, cluster discovery, transparent
+  classification, human review, benchmarks, and a hash-chained audit ledger.
+- [Content Evidence Workbench](https://github.com/Saltiola7/content-evidence-workbench) —
+  retrieval, exact citations, declared-entity context, judged evaluation, and
+  explicit human review over a synthetic corpus.
 
-- Search Taxonomy Lab
-- Content Evidence Workbench
+GitHub source is canonical. GitHub Pages and GitHub-backed Molab are derived
+views of the same reviewed source.
 
-The [DBSCTR Delivery Accelerator](services/dbsctr-delivery-accelerator.md) is a
-fixed-scope implementation and handoff service around the owner-authored,
-MIT-licensed public framework.
+## Fixed-scope service
 
-## Trust Boundary
+The [DBSCTR Delivery Accelerator](services/dbsctr-delivery-accelerator.md)
+adapts an auditable agentic engineering lifecycle to one repository and
+delivers one bounded pilot through every applicable gate.
 
-No employer code, client data, private credentials, restricted assessment
-materials, or proprietary SaaS source is included. See
-[CLEAN_ROOM.md](CLEAN_ROOM.md) and [DATA_PROVENANCE.md](DATA_PROVENANCE.md).
+[Discuss a pilot](mailto:tommi@tommisaltiola.com?subject=DBSCTR%20pilot) or
+inspect the owner-authored, MIT-licensed
+[DBSCTR source](https://github.com/Saltiola7/dotfiles-ai).
+
+## Reproduce the evidence
+
+Each project has its own `pyproject.toml` and `uv.lock`. From a project
+directory:
+
+```bash
+uv sync --locked
+uv run pytest -q
+uv run ruff check .
+uv run ruff format --check .
+uv run marimo check --strict app.py
+```
+
+The classifier notebook lives at `src/app.py`. The
+[Pages workflow](.github/workflows/quality-pages.yml) runs every project gate,
+checks stable committed-session source identities, executes and validates all
+three WASM builds, exercises them in Chromium, scans critical vulnerabilities,
+and emits an SPDX software bill of materials.
+
+## Trust boundary
+
+This repository starts from an empty public-history root. It contains no
+employer code, client data, private credentials, restricted assessment
+material, proprietary SaaS source, or personal datasets. Visitor uploads remain
+runtime-only and are never admitted to committed session previews.
+
+See [CLEAN_ROOM.md](CLEAN_ROOM.md), [DATA_PROVENANCE.md](DATA_PROVENANCE.md),
+and [DEPENDENCIES.md](DEPENDENCIES.md).
+
+## Release status
+
+This branch is a local release preview. It does not replace an existing public
+branch or deploy Pages until the owner reviews the exact commit and explicitly
+approves publication to the intended
+[`Saltiola7/data-portfolio`](https://github.com/Saltiola7/data-portfolio)
+repository.
 
 ## License
 
-Owner-authored code in this clean-root repository is available under the
-[MIT License](LICENSE). Individual public datasets retain their recorded source
-licenses.
+Owner-authored code is available under the [MIT License](LICENSE). Any future
+public datasets retain their separately recorded source licenses.

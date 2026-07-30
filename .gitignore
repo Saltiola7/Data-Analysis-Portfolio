@@ -8,8 +8,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+build/
 dist/
 node_modules/
 output/
 sensitive/
-
