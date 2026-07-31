@@ -2,10 +2,10 @@
 title: Synthetic Wellness Data Pipeline
 status: approved
 type: flagship-project
-version: 1.1
-last_updated: 2026-07-29
+version: 1.2
+last_updated: 2026-07-30
 bounded_context: wellness_data_pipeline
-risk: routine
+risk: elevated
 ---
 
 # Synthetic Wellness Data Pipeline
@@ -13,10 +13,10 @@ risk: routine
 ## Goal
 
 Demonstrate production-oriented data engineering through a deterministic,
-schema-governed pipeline built entirely from synthetic data. The project is an
-independent competency demonstration. It generalizes concepts from earlier
-certification work without copying any assessment prompt, supplied data,
-solution code, exact schema, metric, output, or credential image.
+schema-governed four-source pipeline built entirely from synthetic data. The
+project is the public Data Engineer Certification Case Study. It independently
+demonstrates assessed competencies without copying any assessment prompt,
+supplied data, solution code, exact schema, metric, output, or credential image.
 
 ## Architecture
 
@@ -82,8 +82,9 @@ changes.
 | Dataset | Grain | Required fields |
 |---|---|---|
 | Participant | one row per `participant_id` | `participant_id`, `cohort`, `joined_on` |
+| Program | one row per `program_id` | `program_id`, `program_name`, `program_type` |
 | DailySignal | one row per `participant_id` and `observed_on` | `participant_id`, `observed_on`, `sleep_value`, `sleep_unit`, `active_value`, `active_unit`, `pulse_bpm` |
-| Intervention | one row per event | `intervention_id`, `participant_id`, `occurred_on`, `intervention`, `dose_value`, `dose_unit` |
+| Intervention | one row per event | `intervention_id`, `participant_id`, `program_id`, `occurred_on`, `intervention`, `dose_value`, `dose_unit` |
 
 ### Outputs
 
@@ -95,15 +96,20 @@ Fields:
 - sleep and active duration in minutes
 - average pulse
 - intervention-event count
+- distinct program count
 - total intervention dose in milligrams
 - quality status
 
 `RejectedRecord` grain is one row per rejected input row with source, source-row
 identity, reason code, and safe detail.
 
-`AuditReport` records source counts, accepted and rejected counts, output count,
- duplicate counts, missing-participant counts, schema version, and deterministic
-content hashes.
+`SourceProfile` records source name, row count, column count, required-field
+null counts, duplicate-key count, and accepted/rejected counts without exposing
+raw values.
+
+`AuditReport` records source profiles, accepted and rejected counts, output
+count, duplicate counts, missing-reference counts, schema version, and
+deterministic content hashes.
 
 ## Behavior
 

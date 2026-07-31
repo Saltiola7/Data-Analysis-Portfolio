@@ -2,10 +2,10 @@
 title: Content Performance Classifier
 status: approved
 type: flagship-project
-version: 1.1
-last_updated: 2026-07-29
+version: 1.2
+last_updated: 2026-07-30
 bounded_context: content_performance_classifier
-risk: routine
+risk: elevated
 ---
 
 # Content Performance Classifier
@@ -13,9 +13,11 @@ risk: routine
 ## Goal
 
 Demonstrate leakage-aware, reproducible data-science work through a synthetic
-content-performance classification problem. The project must expose baseline,
-model, threshold, calibration, slice, and error evidence without using employer
-features, labels, taxonomies, thresholds, data, or metrics.
+content-performance classification problem. The project is the public Data
+Scientist Certification Case Study. It exposes missing-value treatment, model
+comparison, recall-constrained decision policy, uncertainty, calibration,
+slice, and error evidence without using employer or assessment features,
+labels, taxonomies, thresholds, data, metrics, or code.
 
 ## Domain
 
@@ -38,6 +40,21 @@ model parameters, metrics, and deterministic content hashes.
 
 `Prediction` records content identity, probability, threshold, predicted class,
 actual class when available, and error type.
+
+`GroupedImputationPolicy` learns numeric medians by `topic_family` from the
+training partition only and uses a training-global median for unseen or
+all-missing groups.
+
+`ModelBenchmark` compares logistic regression, random forest, and a prevalence
+baseline on validation evidence while keeping the transparent logistic model as
+the primary interpretability surface.
+
+`RecallConstraint` is a user-selected validation-only minimum recall target.
+The selected threshold maximizes validation precision among thresholds meeting
+that target and is then frozen for reserved-test evaluation.
+
+`BootstrapInterval` estimates reserved-test precision uncertainty at the fixed
+reporting threshold with deterministic stratified resampling.
 
 ## Behavior
 
