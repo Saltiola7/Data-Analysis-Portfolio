@@ -264,5 +264,5 @@ Required tests cover schema failure, unit conversion, invalid values, unknown
 participants, duplicates, join cardinality, idempotency, audit balance, input
 immutability, deterministic fixture generation, and notebook import.
 
-Current evidence: 34 focused tests plus strict Marimo, executed WASM package,
+Current evidence: 36 focused tests plus strict Marimo, executed WASM package,
 committed-session source identity, and Chromium interaction gates.

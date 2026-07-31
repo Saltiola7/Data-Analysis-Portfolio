@@ -7,12 +7,13 @@ import json
 import math
 import re
 from collections import Counter
+from dataclasses import asdict
 from datetime import date, datetime
 from typing import Any, Final
 
 import pandas as pd
 
-from .models import NormalizationError, PipelineResult, SchemaError
+from .models import NormalizationError, PipelineResult, SchemaError, SourceProfile
 from .normalization import (
     normalize_dose_mg,
     normalize_duration,
@@ -623,20 +624,27 @@ def run_pipeline(
         "output_count": len(participant_days),
         "duplicate_counts": duplicate_counts,
         "missing_participant_counts": missing_participant_counts,
-        "source_profiles": profile_sources(
-            {
-                "participants": (participant_rows, PARTICIPANT_COLUMNS, "participant_id"),
-                "programs": (program_rows, PROGRAM_COLUMNS, "program_id"),
-                "daily_signals": (
-                    signal_rows,
-                    DAILY_SIGNAL_COLUMNS,
-                    ("participant_id", "observed_on"),
-                ),
-                "interventions": (intervention_rows, INTERVENTION_COLUMNS, "intervention_id"),
-            },
-            accepted_counts,
-            rejected_counts,
-        ),
+        "source_profiles": {
+            source: asdict(profile)
+            for source, profile in _build_source_profiles(
+                {
+                    "participants": (participant_rows, PARTICIPANT_COLUMNS, "participant_id"),
+                    "programs": (program_rows, PROGRAM_COLUMNS, "program_id"),
+                    "daily_signals": (
+                        signal_rows,
+                        DAILY_SIGNAL_COLUMNS,
+                        ("participant_id", "observed_on"),
+                    ),
+                    "interventions": (
+                        intervention_rows,
+                        INTERVENTION_COLUMNS,
+                        "intervention_id",
+                    ),
+                },
+                accepted_counts,
+                rejected_counts,
+            ).items()
+        },
         "content_hashes": {
             "participant_days": _canonical_hash(participant_days),
             "rejected_records": _canonical_hash(rejected_records),
@@ -650,26 +658,40 @@ def run_pipeline(
     )
 
 
-def profile_sources(
+def _build_source_profiles(
     sources: dict[str, tuple[pd.DataFrame, tuple[str, ...], str | tuple[str, ...]]],
     accepted_counts: dict[str, int],
     rejected_counts: dict[str, int],
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, SourceProfile]:
     """Return bounded aggregate metadata without source values."""
-    profiles: dict[str, dict[str, Any]] = {}
+    profiles: dict[str, SourceProfile] = {}
     for source, (frame, required_columns, key_columns) in sources.items():
         keys = [key_columns] if isinstance(key_columns, str) else list(key_columns)
-        profiles[source] = {
-            "row_count": len(frame),
-            "column_count": len(frame.columns),
-            "required_field_null_counts": {
+        profiles[source] = SourceProfile(
+            row_count=len(frame),
+            column_count=len(frame.columns),
+            required_field_null_counts={
                 column: int(frame[column].isna().sum()) for column in required_columns
             },
-            "duplicate_key_count": int(frame.duplicated(keys, keep=False).sum()),
-            "accepted_count": accepted_counts[source],
-            "rejected_count": rejected_counts[source],
-        }
+            duplicate_key_count=int(frame.duplicated(keys, keep=False).sum()),
+            accepted_count=accepted_counts[source],
+            rejected_count=rejected_counts[source],
+        )
     return profiles
+
+
+def profile_sources(
+    participants: pd.DataFrame,
+    programs: pd.DataFrame,
+    daily_signals: pd.DataFrame,
+    interventions: pd.DataFrame,
+) -> dict[str, SourceProfile]:
+    """Validate all sources and return their aggregate processing profiles."""
+    result = run_pipeline(participants, programs, daily_signals, interventions)
+    return {
+        source: SourceProfile(**profile)
+        for source, profile in result.audit["source_profiles"].items()
+    }
 
 
 def audit_to_json(result: PipelineResult) -> str:

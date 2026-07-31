@@ -5,6 +5,7 @@ from .models import (
     NormalizationError,
     PipelineResult,
     SchemaError,
+    SourceProfile,
     SyntheticFixture,
 )
 from .normalization import normalize_dose_mg, normalize_duration
@@ -16,6 +17,7 @@ __all__ = [
     "NormalizationError",
     "PipelineResult",
     "SchemaError",
+    "SourceProfile",
     "SyntheticFixture",
     "UploadError",
     "audit_to_json",

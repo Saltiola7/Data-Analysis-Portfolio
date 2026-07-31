@@ -211,8 +211,8 @@ def select_threshold_for_minimum_recall(
 
 def bootstrap_reserved_precision(
     artifact: ModelArtifact,
-    *,
     threshold: float,
+    *,
     seed: int = 2026,
     resamples: int = 500,
 ) -> BootstrapInterval: ...
@@ -278,10 +278,10 @@ The Marimo notebook is a thin adapter over these tested functions.
 
 ## Validation
 
-- Twenty-seven focused tests cover determinism, schema/range failure, leakage
-  exclusion, three-way split stability, baseline comparison, validation-only
-  threshold selection, reserved-test invariance, slice accounting, hashes,
-  input immutability, and safe export.
+- Thirty-six focused tests cover determinism, schema/range failure, missing
+  values, leakage exclusion, three-way split stability, model benchmarking,
+  recall-constrained threshold selection, reserved-test uncertainty and
+  invariance, slice accounting, hashes, input immutability, and safe export.
 - Focused pytest and curated Ruff checks pass.
 - Strict Marimo, executed WASM package, committed-session source identity, and
   Chromium interaction gates pass.

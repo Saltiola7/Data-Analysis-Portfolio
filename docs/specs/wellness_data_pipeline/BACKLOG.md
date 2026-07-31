@@ -13,7 +13,7 @@ last_updated: 2026-07-29
 | WELL-003 | Implement deterministic pipeline and synthetic fixture | P0 | completed | WELL-002 | project package and fixture | tests | no | Minimal implementation satisfies contracts | L | Focused pytest and Ruff pass |
 | WELL-004 | Build thin Marimo explorer | P1 | completed | WELL-003 | `app.py` | validated package and fixture | no | Interactive evidence must not duplicate domain logic | M | Strict check and smoke test pass |
 | WELL-005 | Add provenance, case study, and validation evidence | P1 | completed | WELL-004 | project documentation | passing project evidence | no | Recruiter claims must remain traceable | S | Claim, provenance, WASM, and browser review pass |
-| WELL-006 | Expand certification case study to four synthetic sources and source profiles | P0 | in_progress | WELL-005 | program model, fixture, pipeline, app, tests, documentation | public wellness specification | no | Show multi-source integration and validation depth without assessment reuse | L | Four-source contracts, referential failures, profiles, strict Marimo, WASM, and browser journey pass |
+| WELL-006 | Expand certification case study to four synthetic sources and source profiles | P0 | completed | WELL-005 | program model, fixture, pipeline, app, tests, documentation | public wellness specification | no | Show multi-source integration and validation depth without assessment reuse | L | Four-source contracts, referential failures, profiles, strict Marimo, WASM, and browser journey pass |
 
 ## Completed
 
@@ -24,3 +24,4 @@ last_updated: 2026-07-29
 | WELL-003 | 2026-07-29 | 34 focused tests and curated Ruff checks pass |
 | WELL-004 | 2026-07-29 | Strict Marimo check and executable HTML export pass |
 | WELL-005 | 2026-07-29 | Provenance, case study, synthetic session, WASM package, and Chromium evidence |
+| WELL-006 | 2026-07-30 | 36 focused tests, Ruff, strict Marimo, deterministic session, executed WASM, and Chromium journey |

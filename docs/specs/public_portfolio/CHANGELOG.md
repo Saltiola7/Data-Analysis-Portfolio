@@ -75,3 +75,23 @@ title: Public Engineering Portfolio Changelog
   `dbsctr/public_portfolio/PORT-PUB-009`, with immutable-SHA Molab verification
   after publication.
 - Implementation commit: `19a8757`.
+
+## 2026-07-30 - Certification case studies
+
+- Promoted the wellness pipeline and content classifier as the direct runnable
+  case studies for the Data Engineer and Data Scientist credentials.
+- Expanded wellness evidence to four synthetic sources, program references,
+  participant-day program counts, and aggregate source profiles.
+- Expanded classifier evidence to training-only grouped imputation, a
+  validation-only three-model benchmark, recall-constrained threshold
+  selection, and fixed-policy reserved-test uncertainty.
+- Added direct project, Molab, source, and engineering-specification links to
+  both credential sections.
+- Rewrote portfolio summaries around actual project contents instead of
+  credential-validation or release-process jargon.
+- Passed 72 focused project tests, 61 release-tool tests, Ruff lint/format,
+  strict Marimo, deterministic sessions, two executed WASM package checks, and
+  both Chromium interaction journeys.
+- No private assessment prompt, supplied data, solution code, output, schema,
+  grader behavior, or credential image was reused in either implementation.
+- Implementation commit: `4fc687e`.

@@ -13,6 +13,7 @@ from wellness_data_pipeline import (
     dataframe_to_safe_csv,
     normalize_dose_mg,
     normalize_duration,
+    profile_sources,
     run_pipeline,
 )
 
@@ -364,6 +365,9 @@ def test_source_profiles_are_metadata_only_and_reconcile() -> None:
     audit_text = audit_to_json(result)
     assert "Mobility" not in audit_text
     assert "P-001" not in audit_text
+    public_profiles = profile_sources(participants, programs, daily_signals, interventions)
+    assert public_profiles["programs"].row_count == len(programs)
+    assert public_profiles["participants"].rejected_count == 1
 
 
 def test_safe_csv_escapes_spreadsheet_formula_prefixes_without_changing_numbers() -> None:
