@@ -23,28 +23,36 @@ supplied data, solution code, exact schema, metric, output, or credential image.
 ```mermaid
 graph TD
     accTitle: Synthetic wellness pipeline data flow
-    accDescr: Three fictional source grains pass schema validation and normalization. Valid records aggregate to a participant-day table, invalid records enter a controlled rejection ledger, and both feed deterministic audit evidence and a Marimo explorer.
+    accDescr: Four fictional source grains pass schema validation, referential checks, and normalization. Programs enrich interventions before valid records aggregate to a participant-day table. Invalid records enter a controlled rejection ledger. Source profiles, curated rows, and rejected rows feed deterministic audit evidence and a Marimo explorer.
 
     PEOPLE["Synthetic participants"]
+    PROGRAMS["Synthetic programs"]
     SIGNALS["Synthetic daily signals"]
     ACTIONS["Synthetic interventions"]
     VALIDATE["Schema and grain validation"]
+    REFERENCES["Participant and program references"]
     NORMALIZE["Unit and category normalization"]
     AGGREGATE["Participant-day aggregation"]
     ACCEPTED["Curated participant-day table"]
     REJECTED["Rejected-record ledger"]
+    PROFILES["Aggregate source profiles"]
     AUDIT["Deterministic audit report"]
     MARIMO["Marimo explorer"]
 
     PEOPLE --> VALIDATE
+    PROGRAMS --> VALIDATE
     SIGNALS --> VALIDATE
     ACTIONS --> VALIDATE
-    VALIDATE --> NORMALIZE
+    VALIDATE --> REFERENCES
+    REFERENCES --> NORMALIZE
     NORMALIZE --> AGGREGATE
     AGGREGATE --> ACCEPTED
     VALIDATE --> REJECTED
+    REFERENCES --> REJECTED
+    VALIDATE --> PROFILES
     ACCEPTED --> AUDIT
     REJECTED --> AUDIT
+    PROFILES --> AUDIT
     ACCEPTED --> MARIMO
     AUDIT --> MARIMO
 ```
@@ -64,12 +72,13 @@ graph TD
 **Review question:** Can each accepted and rejected source row be traced to a
 single governed sink without changing participant-day grain?
 
-**Text equivalent:** Fictional participants, daily signals, and interventions
-enter schema validation. Valid rows pass unit normalization; interventions
-aggregate before joining so the curated table remains one row per participant
-and day. Invalid rows enter a controlled rejection ledger. Curated and rejected
-rows feed deterministic audit hashes, and the Marimo explorer reads the curated
-and audit outputs.
+**Text equivalent:** Fictional participants, programs, daily signals, and
+interventions enter schema validation. Valid interventions must resolve both a
+participant and program before unit normalization. Interventions aggregate
+before joining so the curated table remains one row per participant and day.
+Invalid rows enter a controlled rejection ledger. Aggregate source profiles,
+curated rows, and rejected rows feed deterministic audit hashes, and the Marimo
+explorer reads the curated and audit outputs.
 
 Canonical source: this specification. Owner: repository owner. Change trigger:
 source grain, validation, normalization, aggregation, sink, or browser boundary
@@ -167,9 +176,17 @@ def generate_synthetic_fixture(seed: int = 2026) -> SyntheticFixture: ...
 
 def run_pipeline(
     participants: pandas.DataFrame,
+    programs: pandas.DataFrame,
     daily_signals: pandas.DataFrame,
     interventions: pandas.DataFrame,
 ) -> PipelineResult: ...
+
+def profile_sources(
+    participants: pandas.DataFrame,
+    programs: pandas.DataFrame,
+    daily_signals: pandas.DataFrame,
+    interventions: pandas.DataFrame,
+) -> dict[str, SourceProfile]: ...
 
 def normalize_duration(value: object, unit: object) -> float: ...
 
@@ -187,7 +204,9 @@ def read_csv_upload(
 def dataframe_to_safe_csv(frame: pandas.DataFrame) -> str: ...
 ```
 
-`PipelineResult` contains `participant_days`, `rejected_records`, and `audit`.
+`SyntheticFixture` contains `participants`, `programs`, `daily_signals`, and
+`interventions`. `PipelineResult` contains `participant_days`,
+`rejected_records`, and `audit`; the audit embeds aggregate source profiles.
 Functions do not read files, access networks, mutate inputs, or depend on
 private configuration.
 

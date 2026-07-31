@@ -11,6 +11,7 @@ last_updated: 2026-07-30
 | PORT-PUB-010 | Build clean-room WordPress migration workbench | P1 | pending | PORT-PUB-009 | new spec and project | only generalized migration concepts | yes | Strong fixed-scope service evidence without client reuse | L | Synthetic export, pure transforms, dry-run manifest, tests, and Molab pass |
 | PORT-PUB-011 | Build clean-room media-to-CMS delivery simulator | P2 | pending | PORT-PUB-009 | new spec and project | only generalized YouTube/CDN/CMS concepts | yes | Useful integration evidence after contract redesign | L | Synthetic adapters, retry/idempotency contracts, Prefect parity, and Molab pass |
 | PORT-PUB-012 | Reassess restaurant-location data-quality app | P2 | cancelled | PORT-PUB-009 | independent dataset provenance and new project | no legacy outputs or unknown-license data | yes | Folded into the broader synthetic learning-lab cycle | M | Superseded by PORT-PUB-013 |
+| PORT-PUB-015 | Publish two certification solution case studies | P0 | in_progress | PORT-PUB-013 | credential navigation, wellness and classifier specs/apps/tests | only public specs and synthetic fixtures | no | Credentials need direct, runnable applied evidence without assessment-source publication | L | Focused tests, Ruff, strict Marimo, repository contract, WASM, Chromium, and branch Molab pass |
 
 ## Completed
 

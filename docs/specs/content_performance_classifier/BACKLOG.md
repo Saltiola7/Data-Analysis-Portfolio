@@ -13,6 +13,7 @@ last_updated: 2026-07-29
 | CPC-003 | Implement deterministic classifier package | P0 | completed | CPC-002 | package | 27 focused tests and Ruff |
 | CPC-004 | Build thin threshold and error-analysis Marimo explorer | P1 | completed | CPC-003 | `src/app.py` | Strict check, WASM, session, and browser interaction |
 | CPC-005 | Add provenance and case-study evidence | P1 | completed | CPC-004 | documentation | Claim and privacy review |
+| CPC-006 | Add certification case-study imputation, benchmark, recall policy, and uncertainty | P0 | in_progress | CPC-005 | classifier package, app, tests, documentation | Public specification only | Grouped imputation, three-model validation benchmark, frozen recall policy, bootstrap interval, strict Marimo, WASM, and browser journey pass |
 
 ## Completed
 

@@ -19,6 +19,67 @@ comparison, recall-constrained decision policy, uncertainty, calibration,
 slice, and error evidence without using employer or assessment features,
 labels, taxonomies, thresholds, data, metrics, or code.
 
+## Architecture
+
+```mermaid
+graph TD
+    accTitle: Leakage-aware certification case-study evaluation flow
+    accDescr: Synthetic or runtime-uploaded content rows pass closed-schema validation and deterministic partitioning. Training-only grouped imputation feeds logistic and random-forest models plus a prevalence baseline. Validation evidence supports model comparison and a recall-constrained threshold. The frozen threshold produces reserved-test metrics, bootstrap uncertainty, calibration, slices, and exports without retuning.
+
+    INPUT["Synthetic fixture or bounded upload"]
+    CONTRACT["Closed schema and range validation"]
+    SPLIT["Deterministic train, validation, reserved-test split"]
+    IMPUTE["Training-only grouped imputation"]
+    MODELS["Logistic, random forest, prevalence baseline"]
+    VALIDATION["Validation model comparison"]
+    POLICY["Recall-constrained threshold selection"]
+    RESERVED["Frozen reserved-test evaluation"]
+    UNCERTAINTY["Deterministic bootstrap interval"]
+    EVIDENCE["Metrics, calibration, slices, errors, exports"]
+    APP["Marimo explorer"]
+
+    INPUT --> CONTRACT
+    CONTRACT --> SPLIT
+    SPLIT --> IMPUTE
+    IMPUTE --> MODELS
+    MODELS --> VALIDATION
+    VALIDATION --> POLICY
+    POLICY --> RESERVED
+    RESERVED --> UNCERTAINTY
+    RESERVED --> EVIDENCE
+    UNCERTAINTY --> EVIDENCE
+    EVIDENCE --> APP
+```
+
+## Visual Evidence
+
+| Concern | Decision |
+|---|---|
+| Boundary | required: evaluation flow above |
+| Interaction | required: evaluation flow above captures tuning-before-reserved-test order |
+| State | not applicable: artifacts are immutable evaluation results, not legal workflow states |
+| Data/trust | required: evaluation flow above separates runtime input, training, validation, and reserved test |
+| Schema | not applicable: feature contract below is clearer than an entity diagram |
+| Dependency/deployment | not applicable: browser packaging is owned by the portfolio release spec |
+| Quantitative | not applicable: no implementation decision depends on a measured result from synthetic data |
+
+**Review question:** Can preprocessing, model comparison, threshold selection,
+and uncertainty estimation occur without reserved-test feedback entering any
+tuning decision?
+
+**Text equivalent:** Synthetic or bounded runtime input first passes closed
+schema validation and deterministic train, validation, and reserved-test
+partitioning. Grouped imputation is learned from training rows only. Logistic
+regression, random forest, and a prevalence baseline are compared only on
+validation evidence. A minimum-recall policy selects and freezes one validation
+threshold. Reserved-test metrics and a deterministic bootstrap precision
+interval use that frozen threshold without retuning. Calibration, slices, error
+evidence, and exports feed the Marimo explorer.
+
+Canonical source: this specification. Owner: repository owner. Change trigger:
+feature, partition, imputation, model, threshold, uncertainty, export, or browser
+boundaries change.
+
 ## Domain
 
 `ContentObservation` has one row per synthetic content item:
@@ -135,6 +196,26 @@ def train_classifier(
     *,
     seed: int = 2026,
 ) -> ModelArtifact: ...
+
+def benchmark_models(
+    frame: pandas.DataFrame,
+    *,
+    seed: int = 2026,
+) -> pandas.DataFrame: ...
+
+def select_threshold_for_minimum_recall(
+    artifact: ModelArtifact,
+    *,
+    minimum_recall: float = 0.75,
+) -> float: ...
+
+def bootstrap_reserved_precision(
+    artifact: ModelArtifact,
+    *,
+    threshold: float,
+    seed: int = 2026,
+    resamples: int = 500,
+) -> BootstrapInterval: ...
 
 def evaluate_at_threshold(
     artifact: ModelArtifact,
