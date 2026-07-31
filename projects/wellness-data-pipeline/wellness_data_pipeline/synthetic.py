@@ -10,7 +10,7 @@ import pandas as pd
 
 from .models import SyntheticFixture
 
-GENERATOR_VERSION: Final = "wellness-synthetic-v1"
+GENERATOR_VERSION: Final = "wellness-synthetic-v2"
 
 
 def generate_synthetic_fixture(seed: int = 2026) -> SyntheticFixture:
@@ -28,6 +28,14 @@ def generate_synthetic_fixture(seed: int = 2026) -> SyntheticFixture:
             "joined_on": (first_day - timedelta(days=7 + number)).isoformat(),
         }
         for number in range(1, participant_count + 1)
+    ]
+    programs = [
+        {
+            "program_id": f"PRG-{number:03d}",
+            "program_name": ("Mobility", "Recovery", "Focus")[number - 1],
+            "program_type": ("movement", "recovery", "mindfulness")[number - 1],
+        }
+        for number in range(1, 4)
     ]
 
     duration_units = ("min", "minutes", "h", "hours")
@@ -98,6 +106,7 @@ def generate_synthetic_fixture(seed: int = 2026) -> SyntheticFixture:
                     {
                         "intervention_id": f"I-{event_number:04d}",
                         "participant_id": participant_id,
+                        "program_id": f"PRG-{rng.randrange(1, 4):03d}",
                         "occurred_on": (first_day + timedelta(days=offset)).isoformat(),
                         "intervention": f"routine-{event_index + 1}",
                         "dose_value": source_value,
@@ -110,19 +119,33 @@ def generate_synthetic_fixture(seed: int = 2026) -> SyntheticFixture:
         {
             "intervention_id": f"I-{event_number:04d}",
             "participant_id": "P-999",
+            "program_id": "PRG-404",
             "occurred_on": first_day.isoformat(),
             "intervention": "routine-unknown",
             "dose_value": 1,
             "dose_unit": "mg",
         }
     )
+    interventions.append(
+        {
+            "intervention_id": f"I-{event_number + 1:04d}",
+            "participant_id": "P-001",
+            "program_id": "PRG-404",
+            "occurred_on": first_day.isoformat(),
+            "intervention": "routine-unmapped",
+            "dose_value": 1,
+            "dose_unit": "mg",
+        }
+    )
 
     rng.shuffle(participants)
+    rng.shuffle(programs)
     rng.shuffle(daily_signals)
     rng.shuffle(interventions)
 
     return SyntheticFixture(
         participants=pd.DataFrame(participants),
+        programs=pd.DataFrame(programs),
         daily_signals=pd.DataFrame(daily_signals),
         interventions=pd.DataFrame(interventions),
         seed=seed,

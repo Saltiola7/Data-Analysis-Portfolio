@@ -13,11 +13,12 @@ from wellness_data_pipeline import (
     dataframe_to_safe_csv,
     normalize_dose_mg,
     normalize_duration,
+    profile_sources,
     run_pipeline,
 )
 
 
-def valid_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def valid_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     participants = pd.DataFrame(
         [
             {"participant_id": "P-001", "cohort": "alpha", "joined_on": "2026-01-01"},
@@ -46,11 +47,18 @@ def valid_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
             },
         ]
     )
+    programs = pd.DataFrame(
+        [
+            {"program_id": "PRG-001", "program_name": "Mobility", "program_type": "movement"},
+            {"program_id": "PRG-002", "program_name": "Recovery", "program_type": "recovery"},
+        ]
+    )
     interventions = pd.DataFrame(
         [
             {
                 "intervention_id": "I-001",
                 "participant_id": "P-001",
+                "program_id": "PRG-001",
                 "occurred_on": "2026-01-02",
                 "intervention": "routine-a",
                 "dose_value": 500,
@@ -59,6 +67,7 @@ def valid_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
             {
                 "intervention_id": "I-002",
                 "participant_id": "P-001",
+                "program_id": "PRG-002",
                 "occurred_on": "2026-01-02",
                 "intervention": "routine-b",
                 "dose_value": 0.002,
@@ -66,7 +75,7 @@ def valid_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
             },
         ]
     )
-    return participants, daily_signals, interventions
+    return participants, programs, daily_signals, interventions
 
 
 @pytest.mark.parametrize(
@@ -114,25 +123,25 @@ def test_normalizers_reject_unsupported_or_missing_units(
 
 
 def test_missing_required_fields_fail_before_row_processing() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
     participants = participants.drop(columns=["cohort"])
 
     with pytest.raises(SchemaError, match=r"participants.*cohort"):
-        run_pipeline(participants, daily_signals, interventions)
+        run_pipeline(participants, programs, daily_signals, interventions)
 
 
 def test_input_row_limit_fails_before_row_processing() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
     oversized = pd.concat([daily_signals.iloc[[0]]] * 10_001, ignore_index=True)
 
     with pytest.raises(SchemaError, match=r"daily_signals.*10,000"):
-        run_pipeline(participants, oversized, interventions)
+        run_pipeline(participants, programs, oversized, interventions)
 
 
 def test_multiple_interventions_do_not_multiply_participant_day_grain() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
 
-    result = run_pipeline(participants, daily_signals, interventions)
+    result = run_pipeline(participants, programs, daily_signals, interventions)
 
     assert list(result.participant_days["participant_id"]) == ["P-001", "P-002"]
     first_day = result.participant_days.iloc[0]
@@ -140,17 +149,18 @@ def test_multiple_interventions_do_not_multiply_participant_day_grain() -> None:
     assert first_day["active_minutes"] == 45.0
     assert first_day["average_pulse_bpm"] == 64.0
     assert first_day["intervention_event_count"] == 2
+    assert first_day["distinct_program_count"] == 2
     assert first_day["total_intervention_dose_mg"] == 2.5
     assert result.participant_days.duplicated(["participant_id", "observed_on"]).sum() == 0
 
 
 def test_every_conflicting_daily_signal_row_is_rejected() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
     conflict = daily_signals.iloc[[0]].copy()
     conflict["sleep_value"] = 7
     daily_signals = pd.concat([daily_signals, conflict], ignore_index=True)
 
-    result = run_pipeline(participants, daily_signals, interventions)
+    result = run_pipeline(participants, programs, daily_signals, interventions)
 
     duplicate_rejections = result.rejected_records.query(
         "source == 'daily_signals' and reason_code == 'duplicate_signal_key'"
@@ -161,11 +171,11 @@ def test_every_conflicting_daily_signal_row_is_rejected() -> None:
 
 
 def test_duplicate_participants_and_interventions_have_no_arbitrary_winner() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
     participants = pd.concat([participants, participants.iloc[[0]]], ignore_index=True)
     interventions = pd.concat([interventions, interventions.iloc[[0]]], ignore_index=True)
 
-    result = run_pipeline(participants, daily_signals, interventions)
+    result = run_pipeline(participants, programs, daily_signals, interventions)
 
     rejected = result.rejected_records
     assert (
@@ -190,13 +200,14 @@ def test_duplicate_participants_and_interventions_have_no_arbitrary_winner() -> 
     )
     assert result.audit["duplicate_counts"] == {
         "participants": 2,
+        "programs": 0,
         "daily_signals": 0,
         "interventions": 2,
     }
 
 
 def test_invalid_values_units_dates_and_unknown_participants_are_rejected() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
     daily_signals = pd.concat(
         [
             daily_signals,
@@ -251,6 +262,7 @@ def test_invalid_values_units_dates_and_unknown_participants_are_rejected() -> N
                     {
                         "intervention_id": "I-003",
                         "participant_id": "P-404",
+                        "program_id": "PRG-001",
                         "occurred_on": "2026-01-02",
                         "intervention": "routine-c",
                         "dose_value": 1,
@@ -259,6 +271,7 @@ def test_invalid_values_units_dates_and_unknown_participants_are_rejected() -> N
                     {
                         "intervention_id": "I-004",
                         "participant_id": "P-002",
+                        "program_id": "PRG-002",
                         "occurred_on": "2026-01-02",
                         "intervention": "routine-c",
                         "dose_value": -1,
@@ -270,7 +283,7 @@ def test_invalid_values_units_dates_and_unknown_participants_are_rejected() -> N
         ignore_index=True,
     )
 
-    result = run_pipeline(participants, daily_signals, interventions)
+    result = run_pipeline(participants, programs, daily_signals, interventions)
 
     reason_codes = set(result.rejected_records["reason_code"])
     assert {
@@ -286,30 +299,30 @@ def test_invalid_values_units_dates_and_unknown_participants_are_rejected() -> N
 
 
 def test_pipeline_is_idempotent_and_does_not_mutate_inputs() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
     originals = tuple(
-        copy.deepcopy(frame) for frame in (participants, daily_signals, interventions)
+        copy.deepcopy(frame) for frame in (participants, programs, daily_signals, interventions)
     )
 
-    first = run_pipeline(participants, daily_signals, interventions)
-    second = run_pipeline(participants, daily_signals, interventions)
+    first = run_pipeline(participants, programs, daily_signals, interventions)
+    second = run_pipeline(participants, programs, daily_signals, interventions)
 
     pd.testing.assert_frame_equal(first.participant_days, second.participant_days)
     pd.testing.assert_frame_equal(first.rejected_records, second.rejected_records)
     assert first.audit == second.audit
     for frame, original in zip(
-        (participants, daily_signals, interventions), originals, strict=True
+        (participants, programs, daily_signals, interventions), originals, strict=True
     ):
         pd.testing.assert_frame_equal(frame, original)
 
 
 def test_audit_balances_sources_and_serializes_canonically() -> None:
-    participants, daily_signals, interventions = valid_inputs()
+    participants, programs, daily_signals, interventions = valid_inputs()
 
-    result = run_pipeline(participants, daily_signals, interventions)
+    result = run_pipeline(participants, programs, daily_signals, interventions)
     audit = result.audit
 
-    for source in ("participants", "daily_signals", "interventions"):
+    for source in ("participants", "programs", "daily_signals", "interventions"):
         assert audit["source_counts"][source] == (
             audit["accepted_counts"][source] + audit["rejected_counts"][source]
         )
@@ -318,6 +331,43 @@ def test_audit_balances_sources_and_serializes_canonically() -> None:
     assert audit_to_json(result) == json.dumps(
         audit, sort_keys=True, separators=(",", ":"), ensure_ascii=True
     )
+
+
+def test_unknown_and_conflicting_programs_fail_closed() -> None:
+    participants, programs, daily_signals, interventions = valid_inputs()
+    programs = pd.concat([programs, programs.iloc[[0]]], ignore_index=True)
+    interventions.loc[1, "program_id"] = "PRG-404"
+
+    result = run_pipeline(participants, programs, daily_signals, interventions)
+
+    assert len(result.rejected_records.query("reason_code == 'duplicate_program_id'")) == 2
+    assert len(result.rejected_records.query("reason_code == 'unknown_program'")) == 2
+    assert result.participant_days.iloc[0]["distinct_program_count"] == 0
+
+
+def test_source_profiles_are_metadata_only_and_reconcile() -> None:
+    participants, programs, daily_signals, interventions = valid_inputs()
+    participants.loc[0, "cohort"] = None
+
+    result = run_pipeline(participants, programs, daily_signals, interventions)
+
+    for source, profile in result.audit["source_profiles"].items():
+        assert profile["row_count"] == result.audit["source_counts"][source]
+        assert profile["accepted_count"] + profile["rejected_count"] == profile["row_count"]
+        assert set(profile) == {
+            "row_count",
+            "column_count",
+            "required_field_null_counts",
+            "duplicate_key_count",
+            "accepted_count",
+            "rejected_count",
+        }
+    audit_text = audit_to_json(result)
+    assert "Mobility" not in audit_text
+    assert "P-001" not in audit_text
+    public_profiles = profile_sources(participants, programs, daily_signals, interventions)
+    assert public_profiles["programs"].row_count == len(programs)
+    assert public_profiles["participants"].rejected_count == 1
 
 
 def test_safe_csv_escapes_spreadsheet_formula_prefixes_without_changing_numbers() -> None:

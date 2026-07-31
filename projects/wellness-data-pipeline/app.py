@@ -72,7 +72,9 @@ def _():
     mo.md("""
     # Synthetic Wellness Data Pipeline
 
-    Explore a deterministic, schema-governed pipeline using bundled synthetic data or three bounded CSV uploads. Processing stays in the active notebook runtime; this app performs no network requests and stores no uploaded data.
+    **Data Engineer certification case study**
+
+    Explore a deterministic, schema-governed pipeline using bundled synthetic data or four bounded CSV uploads. Processing stays in the active notebook runtime; this app performs no network requests and stores no uploaded data.
 
     This engineering demonstration is not a medical product and provides no health advice.
     """)
@@ -97,6 +99,12 @@ def _():
         max_size=2_000_000,
         label="Participants CSV (maximum 2 MB)",
     )
+    programs_upload = mo.ui.file(
+        filetypes=[".csv"],
+        kind="area",
+        max_size=2_000_000,
+        label="Programs CSV (maximum 2 MB)",
+    )
     signals_upload = mo.ui.file(
         filetypes=[".csv"],
         kind="area",
@@ -112,6 +120,7 @@ def _():
     return (
         interventions_upload,
         participants_upload,
+        programs_upload,
         seed_input,
         signals_upload,
         use_uploads,
@@ -119,9 +128,10 @@ def _():
 
 
 @app.cell
-def _(
+def _(  # noqa: PLR0913, PLR0917
     interventions_upload,
     participants_upload,
+    programs_upload,
     seed_input,
     signals_upload,
     use_uploads,
@@ -134,11 +144,12 @@ def _(
                     "Optional CSV uploads": mo.vstack(
                         [
                             mo.callout(
-                                "Enable uploads only after selecting all three files. "
+                                "Enable uploads only after selecting all four files. "
                                 "Files are read in memory and are never written by the app.",
                                 kind="info",
                             ),
                             participants_upload,
+                            programs_upload,
                             signals_upload,
                             interventions_upload,
                         ]
@@ -150,9 +161,10 @@ def _(
 
 
 @app.cell
-def _(
+def _(  # noqa: PLR0913, PLR0917
     interventions_upload,
     participants_upload,
+    programs_upload,
     seed_input,
     signals_upload,
     use_uploads,
@@ -166,22 +178,25 @@ def _(
             upload.value
             for upload in (
                 participants_upload,
+                programs_upload,
                 signals_upload,
                 interventions_upload,
             )
         )
         if not uploads_ready:
             input_status = mo.callout(
-                "Select participants, daily signals, and interventions CSV files.",
+                "Select participants, programs, daily signals, and interventions CSV files.",
                 kind="warn",
             )
         else:
             try:
                 uploaded_participants = read_csv_upload(participants_upload.contents())
+                uploaded_programs = read_csv_upload(programs_upload.contents())
                 uploaded_signals = read_csv_upload(signals_upload.contents())
                 uploaded_interventions = read_csv_upload(interventions_upload.contents())
                 pipeline_result = run_pipeline(
                     uploaded_participants,
+                    uploaded_programs,
                     uploaded_signals,
                     uploaded_interventions,
                 )
@@ -199,6 +214,7 @@ def _(
         synthetic_fixture = generate_synthetic_fixture(seed=int(seed_input.value))
         pipeline_result = run_pipeline(
             synthetic_fixture.participants,
+            synthetic_fixture.programs,
             synthetic_fixture.daily_signals,
             synthetic_fixture.interventions,
         )

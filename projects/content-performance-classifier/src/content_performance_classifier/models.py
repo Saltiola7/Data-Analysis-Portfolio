@@ -65,3 +65,15 @@ class EvaluationResult:
     predictions: pd.DataFrame
     slices: pd.DataFrame
     calibration: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class BootstrapInterval:
+    """Reserved-test precision estimate and deterministic percentile interval."""
+
+    point_estimate: float
+    lower: float
+    upper: float
+    confidence: float
+    resamples: int
+    seed: int

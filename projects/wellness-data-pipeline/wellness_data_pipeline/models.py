@@ -25,6 +25,7 @@ class SyntheticFixture:
     """Deterministic synthetic inputs plus generator provenance."""
 
     participants: pd.DataFrame
+    programs: pd.DataFrame
     daily_signals: pd.DataFrame
     interventions: pd.DataFrame
     seed: int
@@ -38,3 +39,15 @@ class PipelineResult:
     participant_days: pd.DataFrame
     rejected_records: pd.DataFrame
     audit: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class SourceProfile:
+    """Aggregate source metadata without raw values."""
+
+    row_count: int
+    column_count: int
+    required_field_null_counts: dict[str, int]
+    duplicate_key_count: int
+    accepted_count: int
+    rejected_count: int

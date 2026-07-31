@@ -7,8 +7,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import balanced_accuracy_score, f1_score
+from sklearn.metrics import balanced_accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -22,6 +23,7 @@ from .contracts import (
     validate_training_frame,
 )
 from .hashing import hash_frame, hash_mapping, hash_strings
+from .imputation import TopicMedianImputer
 from .models import ModelArtifact
 
 TEST_SIZE = 0.20
@@ -31,6 +33,9 @@ THRESHOLD_GRID = tuple(round(value, 2) for value in np.linspace(0.10, 0.90, 17))
 THRESHOLD_SELECTION_METRIC = "validation_f1_then_balanced_accuracy"
 SYNTHETIC_FIXTURE_VERSION = "content-performance-synthetic-v1"
 USER_FIXTURE_VERSION = "user-supplied-v1"
+BENCHMARK_THRESHOLD = 0.5
+MINIMUM_RECALL_FLOOR = 0.50
+MAXIMUM_RECALL_FLOOR = 0.95
 
 
 def train_classifier(frame: pd.DataFrame, *, seed: int = 2026) -> ModelArtifact:
@@ -84,6 +89,7 @@ def train_classifier(frame: pd.DataFrame, *, seed: int = 2026) -> ModelArtifact:
     )
     pipeline = Pipeline(
         [
+            ("imputation", TopicMedianImputer()),
             ("preprocessing", preprocessing),
             ("classifier", classifier),
         ]
@@ -168,6 +174,109 @@ def train_classifier(frame: pd.DataFrame, *, seed: int = 2026) -> ModelArtifact:
         threshold_selection_metric=THRESHOLD_SELECTION_METRIC,
         model_parameters=model_parameters,
     )
+
+
+def benchmark_models(frame: pd.DataFrame, *, seed: int = 2026) -> pd.DataFrame:
+    """Compare fixed models on one validation partition; never inspect reserved test."""
+    artifact = train_classifier(frame, seed=seed)
+    validated = validate_training_frame(frame)
+    by_id = validated.set_index(IDENTIFIER_COLUMN)
+    train_frame = by_id.loc[list(artifact.train_ids)].reset_index()
+    validation_frame = by_id.loc[list(artifact.validation_ids)].reset_index()
+    validation_targets = artifact.validation_targets
+
+    models: list[tuple[str, object | None]] = [
+        ("logistic_regression", None),
+        (
+            "random_forest",
+            RandomForestClassifier(
+                n_estimators=200,
+                max_depth=8,
+                min_samples_leaf=3,
+                random_state=seed,
+                n_jobs=1,
+            ),
+        ),
+        ("prevalence_baseline", None),
+    ]
+    records: list[dict[str, object]] = []
+    for name, classifier in models:
+        if name == "logistic_regression":
+            probabilities = artifact.validation_probabilities
+        elif name == "prevalence_baseline":
+            probabilities = np.full(
+                len(validation_frame),
+                float(train_frame[TARGET_COLUMN].mean()),
+            )
+        else:
+            pipeline = Pipeline(
+                [
+                    ("imputation", TopicMedianImputer()),
+                    (
+                        "preprocessing",
+                        ColumnTransformer(
+                            [
+                                (
+                                    "categorical",
+                                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                                    list(CATEGORICAL_FEATURES),
+                                ),
+                                ("numeric", StandardScaler(), list(NUMERIC_FEATURES)),
+                            ],
+                            verbose_feature_names_out=False,
+                        ),
+                    ),
+                    ("classifier", classifier),
+                ]
+            )
+            pipeline.fit(train_frame.loc[:, FEATURE_ALLOWLIST], train_frame[TARGET_COLUMN])
+            probabilities = pipeline.predict_proba(validation_frame.loc[:, FEATURE_ALLOWLIST])[
+                :, 1
+            ]
+        predicted = (probabilities >= BENCHMARK_THRESHOLD).astype("int8")
+        records.append(
+            {
+                "model": name,
+                "partition": "validation",
+                "split_identity": artifact.split_identity,
+                "precision": float(
+                    precision_score(validation_targets, predicted, zero_division=0)
+                ),
+                "recall": float(recall_score(validation_targets, predicted, zero_division=0)),
+                "f1": float(f1_score(validation_targets, predicted, zero_division=0)),
+                "balanced_accuracy": float(balanced_accuracy_score(validation_targets, predicted)),
+            }
+        )
+    return pd.DataFrame.from_records(records)
+
+
+def select_threshold_for_minimum_recall(
+    artifact: ModelArtifact,
+    *,
+    minimum_recall: float = 0.75,
+) -> float:
+    """Maximize validation precision subject to an explicit recall floor."""
+    if (
+        isinstance(minimum_recall, bool)
+        or not isinstance(minimum_recall, (int, float))
+        or not MINIMUM_RECALL_FLOOR <= float(minimum_recall) <= MAXIMUM_RECALL_FLOOR
+    ):
+        raise ValueError("minimum_recall must be numeric from 0.50 through 0.95")
+    candidates = sorted({0.0, 1.0, *(float(value) for value in artifact.validation_probabilities)})
+    feasible: list[tuple[float, float, float]] = []
+    for threshold in candidates:
+        predicted = (artifact.validation_probabilities >= threshold).astype("int8")
+        recall = float(recall_score(artifact.validation_targets, predicted, zero_division=0))
+        if recall >= float(minimum_recall):
+            precision = float(
+                precision_score(artifact.validation_targets, predicted, zero_division=0)
+            )
+            feasible.append((precision, recall, threshold))
+    if not feasible:
+        raise ValueError(
+            "no validation threshold satisfies the minimum recall; lower the recall floor"
+        )
+    return max(feasible)[2]
 
 
 def _select_threshold(targets: np.ndarray, probabilities: np.ndarray) -> float:

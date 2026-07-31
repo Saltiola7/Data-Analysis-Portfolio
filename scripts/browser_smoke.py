@@ -244,6 +244,12 @@ def _exercise_classifier(page: ContentTarget) -> None:
     )
     page.wait_for_timeout(10_000)
     slider = page.get_by_role("slider").first
+    reserved_threshold = page.get_by_text(
+        "Validation-selected reporting threshold:",
+        exact=False,
+    )
+    reserved_threshold.wait_for(state="visible", timeout=TIMEOUT_MS)
+    reserved_before = reserved_threshold.inner_text()
 
     def action() -> None:
         slider.focus()
@@ -255,10 +261,10 @@ def _exercise_classifier(page: ContentTarget) -> None:
         )
 
     _wait_for_recompute(page, action, expected)
-    page.get_by_text(
-        "Validation-selected reporting threshold: 0.45",
-        exact=False,
-    ).wait_for(state="visible", timeout=10_000)
+    if reserved_threshold.inner_text() != reserved_before:
+        raise BrowserSmokeError(
+            "reserved-test threshold changed during exploratory threshold update"
+        )
 
 
 def _exercise_opportunity(page: ContentTarget) -> None:

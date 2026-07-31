@@ -2,7 +2,7 @@
 title: Public Data Portfolio
 status: approved
 type: product
-version: 1.3
+version: 1.4
 last_updated: 2026-07-30
 bounded_context: public_portfolio
 risk: elevated
@@ -100,6 +100,7 @@ project admission, validation, delivery, upload, or retention boundaries change.
 | clean-room successor | Independent implementation that generalizes a prior idea without copying restricted artifacts |
 | learning lab | Supporting synthetic Marimo demonstration below flagship status |
 | certification evidence map | Competency-to-successor trace that excludes assessment material |
+| certification case study | Independently implemented public project that demonstrates competencies assessed by a credential without reproducing its assessment |
 
 Entities:
 
@@ -110,6 +111,8 @@ Entities:
 - `ServiceOffer`, identified by product and scope version
 - `LearningLab`, identified by project slug and Marimo source path
 - `CertificationEvidenceMap`, identified by credential and public successor
+- `CertificationCaseStudy`, identified by credential, public project slug, source
+  link, specification link, and runnable Molab link
 
 ## Behavior
 
@@ -189,8 +192,8 @@ synthetic and historical-learning context.
 
 Flagships:
 
-1. Synthetic Wellness Data Pipeline
-2. Content Performance Classifier
+1. Data Engineer Certification Case Study: Synthetic Wellness Data Pipeline
+2. Data Scientist Certification Case Study: Content Performance Classifier
 3. Public-sector Opportunity Pipeline
 
 Supporting learning labs:

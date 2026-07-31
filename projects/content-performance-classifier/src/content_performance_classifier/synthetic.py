@@ -1,4 +1,4 @@
-"""Independent deterministic clean-room content generator."""
+"""Independent deterministic synthetic content generator."""
 
 from __future__ import annotations
 
@@ -87,6 +87,10 @@ def generate_synthetic_content(seed: int = 2026, rows: int = 600) -> ContentFixt
         },
         columns=CONTENT_COLUMNS,
     )
+    readability_missing = np.arange(rows) % 17 == 0
+    coverage_missing = np.arange(rows) % 23 == 0
+    frame.loc[readability_missing, "readability_score"] = np.nan
+    frame.loc[coverage_missing, "query_coverage"] = np.nan
     frame.attrs["fixture_version"] = FIXTURE_VERSION
     frame.attrs["fixture_seed"] = seed
     fixture_hash = hash_frame(frame)

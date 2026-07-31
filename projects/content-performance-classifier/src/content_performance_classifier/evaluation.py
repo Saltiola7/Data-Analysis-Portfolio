@@ -19,10 +19,12 @@ from sklearn.metrics import (
 
 from .contracts import CATEGORICAL_FEATURES
 from .hashing import hash_probabilities
-from .models import EvaluationResult, ModelArtifact
+from .models import BootstrapInterval, EvaluationResult, ModelArtifact
 
 CALIBRATION_BINS = 10
 SMALL_SLICE_SUPPORT = 20
+MIN_BOOTSTRAP_RESAMPLES = 100
+MAX_BOOTSTRAP_RESAMPLES = 5_000
 
 
 def evaluate_at_threshold(
@@ -38,12 +40,68 @@ def evaluate_at_threshold(
     )
 
 
-def evaluate_reserved_test(artifact: ModelArtifact) -> EvaluationResult:
+def evaluate_reserved_test(
+    artifact: ModelArtifact,
+    *,
+    threshold: float | None = None,
+) -> EvaluationResult:
     """Report reserved-test evidence once at the validation-selected threshold."""
     return _evaluate_partition(
         artifact=artifact,
         partition="reserved_test",
-        threshold=artifact.selected_threshold,
+        threshold=artifact.selected_threshold if threshold is None else threshold,
+    )
+
+
+def bootstrap_reserved_precision(
+    artifact: ModelArtifact,
+    threshold: float,
+    *,
+    seed: int = 2026,
+    resamples: int = 500,
+) -> BootstrapInterval:
+    """Estimate reserved-test precision uncertainty without threshold retuning."""
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a non-negative integer")
+    if (
+        isinstance(resamples, bool)
+        or not isinstance(resamples, int)
+        or not MIN_BOOTSTRAP_RESAMPLES <= resamples <= MAX_BOOTSTRAP_RESAMPLES
+    ):
+        raise ValueError("resamples must be an integer from 100 through 5,000")
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
+        raise ValueError("threshold must be a numeric value from 0 through 1")
+    threshold_value = float(threshold)
+    if not 0 <= threshold_value <= 1:
+        raise ValueError("threshold must be a numeric value from 0 through 1")
+
+    targets = artifact.test_targets
+    classes = {int(value) for value in np.unique(targets)}
+    if classes != {0, 1}:
+        raise ValueError("reserved test must contain both classes for stratified bootstrap")
+    probabilities = artifact.test_probabilities
+    predicted = (probabilities >= threshold_value).astype("int8")
+    point_estimate = float(precision_score(targets, predicted, zero_division=0))
+    rng = np.random.default_rng(seed)
+    class_indices = [np.flatnonzero(targets == value) for value in (0, 1)]
+    estimates = np.empty(resamples, dtype="float64")
+    for index in range(resamples):
+        sampled = np.concatenate(
+            [rng.choice(indices, size=len(indices), replace=True) for indices in class_indices]
+        )
+        estimates[index] = precision_score(
+            targets[sampled],
+            predicted[sampled],
+            zero_division=0,
+        )
+    lower, upper = np.percentile(estimates, [2.5, 97.5])
+    return BootstrapInterval(
+        point_estimate=point_estimate,
+        lower=float(lower),
+        upper=float(upper),
+        confidence=0.95,
+        resamples=resamples,
+        seed=seed,
     )
 
 

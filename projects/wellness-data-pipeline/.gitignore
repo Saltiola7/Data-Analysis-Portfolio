@@ -2,5 +2,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
-__marimo__/session/
+__marimo__/session/*
+!__marimo__/session/app.py.json
 *.py[cod]

@@ -70,7 +70,8 @@ def validate_training_frame(frame: pd.DataFrame) -> pd.DataFrame:
         raise InputValidationError(f"missing required columns: {', '.join(missing)}")
 
     validated = frame.copy(deep=True)
-    required = validated.loc[:, CONTENT_COLUMNS]
+    non_nullable = (IDENTIFIER_COLUMN, *CATEGORICAL_FEATURES, TARGET_COLUMN)
+    required = validated.loc[:, non_nullable]
     if required.isna().any().any():
         columns = required.columns[required.isna().any()].tolist()
         raise InputValidationError(f"null values are not allowed in: {', '.join(columns)}")
@@ -106,9 +107,12 @@ def _validate_categories(frame: pd.DataFrame) -> None:
 def _validate_numeric_features(frame: pd.DataFrame) -> None:
     for column, (lower, upper) in NUMERIC_RANGES.items():
         numeric = pd.to_numeric(frame[column], errors="coerce")
-        if numeric.isna().any() or not numeric.between(lower, upper).all():
+        if numeric.isna().all():
+            raise InputValidationError(f"{column} is entirely missing and cannot be imputed")
+        observed = numeric.dropna()
+        if not observed.between(lower, upper).all():
             raise InputValidationError(
-                f"{column} must contain numeric values from {lower} through {upper}"
+                f"{column} must contain numeric values or missing values from {lower} through {upper}"
             )
         frame[column] = numeric
 

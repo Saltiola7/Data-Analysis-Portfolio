@@ -1,6 +1,6 @@
 # Data Portfolio
 
-Clean-room data engineering and applied analytics portfolio by
+Data engineering, applied analytics, and machine-learning portfolio by
 [Tommi Saltiola](https://www.linkedin.com/in/tommisaltiola/).
 
 [Canonical GitHub repository](https://github.com/Saltiola7/data-portfolio)
@@ -14,19 +14,19 @@ interactive Marimo app from that reviewed source on demand.
 
 | Project | Run | Engineering evidence | Tests |
 |---|---|---|---:|
-| [Synthetic Wellness Data Pipeline](projects/wellness-data-pipeline/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/wellness-data-pipeline/app.py/wasm) | Three source grains, schema and grain contracts, dead letters, deterministic hashes, bounded uploads | 34 |
-| [Content Performance Classifier](projects/content-performance-classifier/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/content-performance-classifier/src/app.py/wasm) | Leakage-safe train/validation/reserved-test design, calibration, slice evidence, threshold governance, privacy-bounded exports | 27 |
+| [Data Engineer Certification Case Study](projects/wellness-data-pipeline/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/wellness-data-pipeline/app.py/wasm) | Four-source wellness pipeline, schema and grain contracts, unit normalization, rejected-record ledger, source profiles, deterministic hashes | 36 |
+| [Data Scientist Certification Case Study](projects/content-performance-classifier/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/content-performance-classifier/src/app.py/wasm) | Group-aware imputation, three-model validation benchmark, recall-constrained decisions, reserved-test uncertainty, calibration and slice evidence | 36 |
 | [Public-sector Opportunity Pipeline](projects/public-sector-opportunity-pipeline/README.md) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/public-sector-opportunity-pipeline/app.py/wasm) | Heterogeneous ingestion, deterministic incremental merge, watermarks, retries, Prefect boundary, transparent scoring | 66 |
 
 All three flagships use deterministic fictional data and pass focused tests,
 Ruff, strict Marimo checks, executed WASM export validation, and Chromium
 interaction smoke tests.
 
-The wellness and classifier projects independently generalize broad competency
-areas demonstrated through professional certification. They use newly written
-code, schemas, tests, metrics, and synthetic fixtures. The opportunity pipeline
-similarly generalizes earlier multi-source orchestration work without reusing
-private code, records, schemas, or endpoint contracts.
+The wellness and classifier projects are runnable case studies for broad
+data-engineering and data-science competencies covered by the certifications.
+They use public source, tests, documented contracts, and deterministic
+synthetic fixtures. Private assessment materials are neither needed nor
+published.
 
 ## Supporting learning labs
 
@@ -44,23 +44,23 @@ and runs without credentials, uploads, or private infrastructure.
 | [Judo Medal Explorer](projects/analytics-learning-labs/README.md#judo-medal-explorer) | [Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/analytics-learning-labs/apps/sports_outcomes.py/wasm) | Medal-rate summaries at declared fictional athlete-event grain |
 
 See the [Analytics Learning Labs evidence](projects/analytics-learning-labs/README.md)
-and [clean-room provenance](projects/analytics-learning-labs/PROVENANCE.md).
+and [data provenance](projects/analytics-learning-labs/PROVENANCE.md).
 
 ## Professional certifications
 
-Owner-approved DataCamp Data Scientist and Data Engineer certificates are
-published as professional evidence with official verification links, exact
-checksums, visible-content review, and metadata review.
+DataCamp Data Scientist and Data Engineer certificates are published with
+official verification links. Each credential points to a runnable public case
+study, its source, and its engineering specification.
 
 [Review certifications and competency mapping](CERTIFICATIONS.md).
 
 Certificate images do not admit any associated assessment prompts, datasets,
 solutions, schemas, metrics, outputs, or grader rules into this repository.
 
-## Independent clean-room products
+## Search and knowledge products
 
 Two separate repositories turn deeper search and knowledge-system patterns into
-public demonstrations without employer-code reuse:
+public demonstrations using independently implemented source:
 
 - [Search Taxonomy Lab](https://github.com/Saltiola7/search-taxonomy-lab) —
   TF-IDF and latent-semantic evidence, cluster discovery, transparent
@@ -110,13 +110,13 @@ scans critical vulnerabilities, and emits an SPDX software bill of materials.
 
 ## Trust boundary
 
-This repository starts from an empty public-history root. It contains no
+This repository contains no
 employer code, client data, private credentials, restricted assessment prompts,
 datasets, solutions or outputs, proprietary SaaS source, or personal datasets.
 Visitor uploads remain runtime-only and are never admitted to committed session
 previews.
 
-See [CLEAN_ROOM.md](CLEAN_ROOM.md), [DATA_PROVENANCE.md](DATA_PROVENANCE.md),
+See [DATA_PROVENANCE.md](DATA_PROVENANCE.md),
 and [DEPENDENCIES.md](DEPENDENCIES.md).
 
 ## Publication model

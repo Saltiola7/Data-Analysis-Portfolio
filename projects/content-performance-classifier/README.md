@@ -1,4 +1,4 @@
-# Content Performance Classifier
+# Data Scientist Certification Case Study: Content Performance Classifier
 
 Leakage-aware data-science demonstration using only deterministic synthetic
 content observations. A transparent logistic classifier is compared with a
@@ -6,16 +6,24 @@ majority-class baseline through a deterministic train/validation/test design.
 Threshold exploration uses validation data. One validation-selected threshold
 produces separately labeled reserved-test evidence.
 
+[Run in Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/content-performance-classifier/src/app.py/wasm)
+· [Review source](src/content_performance_classifier/)
+· [Review engineering specification](../../docs/specs/content_performance_classifier/README.md)
+
 ## What it demonstrates
 
 - explicit one-row-per-content-item schema and immutable feature allowlist
 - deterministic, stratified train/validation/test splitting with recorded
   identities
-- preprocessing fitted only on the training split through one sklearn pipeline
-- majority-class baseline and transparent logistic-regression model
+- topic-family median imputation fitted only on training data, with a global
+  training-median fallback
+- transparent logistic regression compared with a fixed random forest and
+  prevalence baseline on one validation split
 - threshold exploration over cached validation probabilities without retraining
-- reserved-test reporting at one threshold selected from validation F1,
-  balanced accuracy, and a deterministic tie-break
+- threshold selection that maximizes validation precision while meeting an
+  explicit minimum-recall policy
+- class-stratified bootstrap uncertainty for reserved-test precision without
+  threshold retuning
 - accuracy, balanced accuracy, precision, recall, F1, ROC AUC, Brier score,
   confusion counts, calibration bins, and per-slice evidence
 - metadata-only audit JSON with non-reversible category pseudonyms and
@@ -88,7 +96,7 @@ uv run --project projects/content-performance-classifier marimo check --strict \
   projects/content-performance-classifier/src/app.py
 ```
 
-Current evidence: 27 focused tests, strict Marimo validation, executed WASM
+Current evidence: 36 focused tests, strict Marimo validation, executed WASM
 package validation, and a Chromium interaction that changes the validation
 threshold while the reserved-test reporting threshold remains fixed.
 
@@ -102,4 +110,4 @@ Synthetic labels come from an independent documented mechanism with bounded
 noise. Resulting performance demonstrates workflow and evidence design. It does
 not estimate production uplift, causal impact, or external validity.
 
-See [PROVENANCE.md](PROVENANCE.md) for clean-room and data provenance.
+See [PROVENANCE.md](PROVENANCE.md) for data provenance.

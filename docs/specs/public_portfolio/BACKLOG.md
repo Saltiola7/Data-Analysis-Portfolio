@@ -11,6 +11,8 @@ last_updated: 2026-07-30
 | PORT-PUB-010 | Build clean-room WordPress migration workbench | P1 | pending | PORT-PUB-009 | new spec and project | only generalized migration concepts | yes | Strong fixed-scope service evidence without client reuse | L | Synthetic export, pure transforms, dry-run manifest, tests, and Molab pass |
 | PORT-PUB-011 | Build clean-room media-to-CMS delivery simulator | P2 | pending | PORT-PUB-009 | new spec and project | only generalized YouTube/CDN/CMS concepts | yes | Useful integration evidence after contract redesign | L | Synthetic adapters, retry/idempotency contracts, Prefect parity, and Molab pass |
 | PORT-PUB-012 | Reassess restaurant-location data-quality app | P2 | cancelled | PORT-PUB-009 | independent dataset provenance and new project | no legacy outputs or unknown-license data | yes | Folded into the broader synthetic learning-lab cycle | M | Superseded by PORT-PUB-013 |
+| PORT-PUB-015 | Publish two certification solution case studies | P0 | completed | PORT-PUB-013 | credential navigation, wellness and classifier specs/apps/tests | only public specs and synthetic fixtures | no | Credentials need direct, runnable applied evidence without assessment-source publication | L | Focused tests, Ruff, strict Marimo, repository contract, WASM, Chromium, and branch Molab pass |
+| PORT-PUB-016 | Upgrade Marimo after PyMdown Extensions 11 compatibility | P2 | pending | upstream Marimo support for `pymdown-extensions>=11` | four project locks | GitHub advisory GHSA-9xwg-3r6f-jcx2 | yes | Marimo 0.23.15 pins PyMdown Extensions below 11; affected `b64` extension is not enabled by portfolio apps | S | Upgrade locks, rerun pip-audit, full suites, WASM, and Chromium |
 
 ## Completed
 
@@ -26,3 +28,4 @@ last_updated: 2026-07-30
 | PORT-PUB-008 | Reviewed clean root published | 2026-07-29 | `0a07de7` |
 | PORT-PUB-009 | Static site retired for GitHub and Molab delivery | 2026-07-30 | `c3834c7` |
 | PORT-PUB-013 | Five synthetic analytics labs and two credential evidence assets delivered | 2026-07-30 | `19a8757` |
+| PORT-PUB-015 | Two runnable certification case studies expanded and linked | 2026-07-30 | `4fc687e` |
