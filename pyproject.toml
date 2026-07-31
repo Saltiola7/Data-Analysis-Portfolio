@@ -1,7 +1,7 @@
 [project]
 name = "data-analysis-portfolio-release-tools"
 version = "0.1.0"
-description = "Validation tools for the clean-room public portfolio release"
+description = "Validation tools for the public data portfolio release"
 requires-python = ">=3.12,<3.15"
 dependencies = []
 

@@ -25,11 +25,14 @@ def _():
     from content_performance_classifier import (
         InputValidationError,
         audit_to_json,
+        benchmark_models,
+        bootstrap_reserved_precision,
         evaluate_at_threshold,
         evaluate_reserved_test,
         generate_synthetic_content,
         predictions_to_safe_csv,
         read_content_csv,
+        select_threshold_for_minimum_recall,
         train_classifier,
     )
 
@@ -75,6 +78,8 @@ def _():
     return (
         InputValidationError,
         audit_to_json,
+        benchmark_models,
+        bootstrap_reserved_precision,
         evaluate_at_threshold,
         evaluate_reserved_test,
         generate_synthetic_content,
@@ -83,6 +88,7 @@ def _():
         predictions_to_safe_csv,
         read_content_csv,
         render_table,
+        select_threshold_for_minimum_recall,
         train_classifier,
     )
 
@@ -92,8 +98,11 @@ def _(mo):
     mo.md("""
     # Content Performance Classifier
 
-    Explore leakage-safe classification, baseline comparison, calibration,
-    decision thresholds, slice performance, and error evidence. Default data is
+    **Data Scientist certification case study**
+
+    Explore leakage-safe classification, model benchmarking, group-aware
+    imputation, recall-constrained decisions, calibration, reserved-test
+    uncertainty, slice performance, and error evidence. Default data is
     deterministic and synthetic. Optional CSV uploads stay in the active
     notebook runtime; classifier code does not transmit or persist upload
     content. The runtime may fetch application dependencies. In a server-hosted
@@ -129,6 +138,14 @@ def _(mo):
         label="Decision threshold",
         show_value=True,
     )
+    recall_input = mo.ui.slider(
+        start=0.50,
+        stop=0.95,
+        step=0.05,
+        value=0.75,
+        label="Minimum validation recall",
+        show_value=True,
+    )
     use_upload = mo.ui.switch(
         value=False,
         label="Use uploaded labeled CSV",
@@ -139,15 +156,15 @@ def _(mo):
         max_size=5_000_000,
         label="Content observations CSV (maximum 5 MB and 5,000 rows)",
     )
-    return content_upload, row_input, seed_input, threshold_input, use_upload
+    return content_upload, recall_input, row_input, seed_input, threshold_input, use_upload
 
 
 @app.cell
-def _(content_upload, mo, row_input, seed_input, threshold_input, use_upload):
+def _(content_upload, mo, recall_input, row_input, seed_input, threshold_input, use_upload):
     mo.vstack(
         [
             mo.hstack(
-                [seed_input, row_input, threshold_input, use_upload],
+                [seed_input, row_input, threshold_input, recall_input, use_upload],
                 justify="start",
             ),
             mo.accordion(
@@ -171,19 +188,26 @@ def _(content_upload, mo, row_input, seed_input, threshold_input, use_upload):
 @app.cell
 def _(
     InputValidationError,
+    benchmark_models,
+    bootstrap_reserved_precision,
     content_upload,
     evaluate_at_threshold,
     evaluate_reserved_test,
     generate_synthetic_content,
     mo,
     read_content_csv,
+    recall_input,
     row_input,
     seed_input,
+    select_threshold_for_minimum_recall,
     threshold_input,
     train_classifier,
     use_upload,
 ):
     classifier_artifact = None
+    benchmark_frame = None
+    precision_interval = None
+    recall_threshold = None
     reserved_test_result = None
     validation_result = None
     input_status = None
@@ -215,11 +239,27 @@ def _(
             )
 
         if classifier_artifact is not None:
+            benchmark_frame = benchmark_models(
+                input_frame if use_upload.value else content_fixture.frame,
+                seed=int(seed_input.value),
+            )
+            recall_threshold = select_threshold_for_minimum_recall(
+                classifier_artifact,
+                minimum_recall=float(recall_input.value),
+            )
+            precision_interval = bootstrap_reserved_precision(
+                classifier_artifact,
+                recall_threshold,
+                seed=int(seed_input.value),
+            )
             validation_result = evaluate_at_threshold(
                 classifier_artifact,
                 threshold=float(threshold_input.value),
             )
-            reserved_test_result = evaluate_reserved_test(classifier_artifact)
+            reserved_test_result = evaluate_reserved_test(
+                classifier_artifact,
+                threshold=recall_threshold,
+            )
             input_status = mo.callout(
                 "Input validated. Slider explores validation evidence; reserved test "
                 "evidence stays fixed at the validation-selected reporting threshold.",
@@ -228,8 +268,11 @@ def _(
     except (InputValidationError, ValueError) as exc:
         input_status = mo.callout(f"Input validation failed: {exc}", kind="danger")
     return (
+        benchmark_frame,
         classifier_artifact,
         input_status,
+        precision_interval,
+        recall_threshold,
         reserved_test_result,
         source_label,
         validation_result,
@@ -238,6 +281,7 @@ def _(
 
 @app.cell
 def _(
+    benchmark_frame,
     input_status,
     mo,
     pd,
@@ -245,6 +289,8 @@ def _(
     reserved_test_result,
     source_label,
     validation_result,
+    precision_interval,
+    recall_threshold,
 ):
     if validation_result is None or reserved_test_result is None:
         summary_view = input_status
@@ -281,6 +327,29 @@ def _(
                     validation_metric_frame,
                     (("metric", "Metric"), ("value", "Value")),
                     "Validation metrics",
+                ),
+                mo.md(
+                    "## Validation-only model benchmark\n\n"
+                    "All candidates use the same split. The reserved test is excluded."
+                ),
+                render_table(
+                    benchmark_frame,
+                    (
+                        ("model", "Model"),
+                        ("precision", "Precision"),
+                        ("recall", "Recall"),
+                        ("f1", "F1"),
+                        ("balanced_accuracy", "Balanced accuracy"),
+                    ),
+                    "Fixed-parameter validation benchmark",
+                ),
+                mo.md(
+                    "## Recall-constrained decision policy\n\n"
+                    f"**Selected threshold:** {recall_threshold:.4f}\n\n"
+                    f"**Reserved-test precision:** {precision_interval.point_estimate:.3f} "
+                    f"(95% stratified bootstrap interval "
+                    f"{precision_interval.lower:.3f}-{precision_interval.upper:.3f}; "
+                    f"{precision_interval.resamples} resamples)"
                 ),
                 mo.md(
                     "## Reserved test evidence\n\n"

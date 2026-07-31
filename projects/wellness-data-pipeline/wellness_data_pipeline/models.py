@@ -25,6 +25,7 @@ class SyntheticFixture:
     """Deterministic synthetic inputs plus generator provenance."""
 
     participants: pd.DataFrame
+    programs: pd.DataFrame
     daily_signals: pd.DataFrame
     interventions: pd.DataFrame
     seed: int

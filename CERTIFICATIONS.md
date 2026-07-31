@@ -1,9 +1,7 @@
 # Professional Certifications
 
-This page records two owner-approved professional credentials and maps their
-broad competency areas to independently implemented public portfolio evidence.
-The certificates verify certification status; they do not establish authorship
-of private assessment implementations.
+This page records two professional credentials and links each one to a public,
+runnable case study demonstrating related engineering work.
 
 ## DataCamp Data Scientist
 
@@ -36,6 +34,13 @@ Broad competency mapping:
   expose declared grain, deterministic fixtures, metrics, limitations, and
   captioned evidence
 
+Case study:
+
+- [Data Scientist Certification Case Study](projects/content-performance-classifier/README.md)
+- [Run in Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/content-performance-classifier/src/app.py/wasm)
+- [Review source](projects/content-performance-classifier/src/content_performance_classifier/)
+- [Review engineering specification](docs/specs/content_performance_classifier/README.md)
+
 ## DataCamp Data Engineer
 
 ![DataCamp Data Engineer certificate](assets/certifications/datacamp-data-engineer.jpg)
@@ -66,6 +71,13 @@ Broad competency mapping:
   and
   [Restaurant Location Quality Lab](projects/analytics-learning-labs/README.md#restaurant-location-quality-lab)
 
+Case study:
+
+- [Data Engineer Certification Case Study](projects/wellness-data-pipeline/README.md)
+- [Run in Molab](https://molab.marimo.io/github/Saltiola7/data-portfolio/blob/main/projects/wellness-data-pipeline/app.py/wasm)
+- [Review source](projects/wellness-data-pipeline/wellness_data_pipeline/)
+- [Review engineering specification](docs/specs/wellness_data_pipeline/README.md)
+
 ## Assessment boundary
 
 Only the two owner-provided screenshots of issuer-issued credentials and their
@@ -74,10 +86,10 @@ datasets, solutions, schemas, metrics, outputs, grader rules, supplied code,
 and private assessment history remain withheld. None is copied, transformed,
 summarized at implementation detail, or required by a public app.
 
-All linked successors use independently written source, tests, documentation,
-and deterministic synthetic fixtures. Competency mapping describes broad
-subject alignment only; it does not reproduce an assessment or claim that
-portfolio code is the assessment submission.
+The linked case studies use public source, tests, documentation, and
+deterministic synthetic fixtures. Competency mapping describes broad subject
+alignment; it does not reproduce an assessment or claim that portfolio code is
+an assessment submission.
 
 ## Review and replacement
 

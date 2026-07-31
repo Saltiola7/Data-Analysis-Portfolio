@@ -21,7 +21,7 @@ All bundled records come from `generate_synthetic_fixture`.
 - source license: repository MIT license
 - generation timing: on demand; no generated dataset is committed
 - admission review date: `2026-07-29`
-- generator version: `wellness-synthetic-v1`
+- generator version: `wellness-synthetic-v2`
 - default seed: `2026`
 - generator: Python standard-library pseudorandom number generator
 - network access: none

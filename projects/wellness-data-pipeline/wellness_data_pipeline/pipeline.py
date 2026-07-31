@@ -19,7 +19,7 @@ from .normalization import (
     normalize_nonnegative_number,
 )
 
-SCHEMA_VERSION: Final = "1.0"
+SCHEMA_VERSION: Final = "1.1"
 MAX_INPUT_ROWS: Final = 10_000
 
 PARTICIPANT_COLUMNS: Final[tuple[str, ...]] = (
@@ -36,9 +36,15 @@ DAILY_SIGNAL_COLUMNS: Final[tuple[str, ...]] = (
     "active_unit",
     "pulse_bpm",
 )
+PROGRAM_COLUMNS: Final[tuple[str, ...]] = (
+    "program_id",
+    "program_name",
+    "program_type",
+)
 INTERVENTION_COLUMNS: Final[tuple[str, ...]] = (
     "intervention_id",
     "participant_id",
+    "program_id",
     "occurred_on",
     "intervention",
     "dose_value",
@@ -52,6 +58,7 @@ PARTICIPANT_DAY_COLUMNS: Final[tuple[str, ...]] = (
     "active_minutes",
     "average_pulse_bpm",
     "intervention_event_count",
+    "distinct_program_count",
     "total_intervention_dose_mg",
     "quality_status",
 )
@@ -63,8 +70,9 @@ REJECTED_COLUMNS: Final[tuple[str, ...]] = (
 )
 SOURCE_ORDER: Final = {
     "participants": 0,
-    "daily_signals": 1,
-    "interventions": 2,
+    "programs": 1,
+    "daily_signals": 2,
+    "interventions": 3,
 }
 ISO_DATE_PATTERN: Final = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -202,6 +210,58 @@ def _process_participants(
     return accepted
 
 
+def _process_programs(
+    programs: pd.DataFrame,
+    rejected: list[dict[str, Any]],
+) -> dict[str, dict[str, str]]:
+    normalized_ids = [_nonempty_string(value) for value in programs["program_id"]]
+    duplicate_ids = {
+        program_id
+        for program_id, count in Counter(
+            program_id for program_id in normalized_ids if program_id is not None
+        ).items()
+        if count > 1
+    }
+    accepted: dict[str, dict[str, str]] = {}
+    for position, (_, row) in enumerate(programs.iterrows()):
+        program_id = normalized_ids[position]
+        if program_id is None:
+            _reject(
+                rejected,
+                source="programs",
+                position=position,
+                reason_code="invalid_program_id",
+                detail="program_id must be a nonempty string",
+            )
+            continue
+        if program_id in duplicate_ids:
+            _reject(
+                rejected,
+                source="programs",
+                position=position,
+                reason_code="duplicate_program_id",
+                detail="program_id occurs more than once",
+            )
+            continue
+        program_name = _nonempty_string(row["program_name"])
+        program_type = _nonempty_string(row["program_type"])
+        if program_name is None or program_type is None:
+            _reject(
+                rejected,
+                source="programs",
+                position=position,
+                reason_code="invalid_program",
+                detail="program_name and program_type must be nonempty strings",
+            )
+            continue
+        accepted[program_id] = {
+            "program_id": program_id,
+            "program_name": program_name,
+            "program_type": program_type,
+        }
+    return accepted
+
+
 def _signal_keys(daily_signals: pd.DataFrame) -> list[tuple[str, str] | None]:
     keys: list[tuple[str, str] | None] = []
     for _, row in daily_signals.iterrows():
@@ -299,6 +359,7 @@ def _intervention_ids(interventions: pd.DataFrame) -> list[str | None]:
 def _process_interventions(
     interventions: pd.DataFrame,
     accepted_participants: dict[str, dict[str, str]],
+    accepted_programs: dict[str, dict[str, str]],
     accepted_signal_keys: set[tuple[str, str]],
     rejected: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
@@ -361,6 +422,16 @@ def _process_interventions(
                 detail="participant_id has no accepted participant row",
             )
             continue
+        program_id = _nonempty_string(row["program_id"])
+        if program_id is None or program_id not in accepted_programs:
+            _reject(
+                rejected,
+                source="interventions",
+                position=position,
+                reason_code="unknown_program",
+                detail="program_id has no accepted program row",
+            )
+            continue
         if (participant_id, occurred_on) not in accepted_signal_keys:
             _reject(
                 rejected,
@@ -395,6 +466,7 @@ def _process_interventions(
             {
                 "intervention_id": intervention_id,
                 "participant_id": participant_id,
+                "program_id": program_id,
                 "occurred_on": occurred_on,
                 "intervention": intervention,
                 "dose_mg": dose_mg,
@@ -409,15 +481,16 @@ def _participant_days(
     accepted_signals: list[dict[str, Any]],
     accepted_interventions: list[dict[str, Any]],
 ) -> pd.DataFrame:
-    interventions_by_day: dict[tuple[str, str], list[float]] = {}
+    interventions_by_day: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for intervention in accepted_interventions:
         key = (intervention["participant_id"], intervention["occurred_on"])
-        interventions_by_day.setdefault(key, []).append(intervention["dose_mg"])
+        interventions_by_day.setdefault(key, []).append(intervention)
 
     records: list[dict[str, Any]] = []
     for signal in accepted_signals:
         key = (signal["participant_id"], signal["observed_on"])
-        doses = interventions_by_day.get(key, [])
+        events = interventions_by_day.get(key, [])
+        doses = [event["dose_mg"] for event in events]
         records.append(
             {
                 "participant_id": signal["participant_id"],
@@ -427,6 +500,7 @@ def _participant_days(
                 "active_minutes": signal["active_minutes"],
                 "average_pulse_bpm": signal["average_pulse_bpm"],
                 "intervention_event_count": len(doses),
+                "distinct_program_count": len({event["program_id"] for event in events}),
                 "total_intervention_dose_mg": math.fsum(doses),
                 "quality_status": "accepted",
             }
@@ -440,6 +514,9 @@ def _participant_days(
         ).reset_index(drop=True)
         participant_days["intervention_event_count"] = participant_days[
             "intervention_event_count"
+        ].astype("int64")
+        participant_days["distinct_program_count"] = participant_days[
+            "distinct_program_count"
         ].astype("int64")
     return participant_days
 
@@ -457,6 +534,7 @@ def _rejected_records(rejected: list[dict[str, Any]]) -> pd.DataFrame:
 
 def run_pipeline(
     participants: pd.DataFrame,
+    programs: pd.DataFrame,
     daily_signals: pd.DataFrame,
     interventions: pd.DataFrame,
 ) -> PipelineResult:
@@ -472,6 +550,7 @@ def run_pipeline(
         "daily_signals",
         DAILY_SIGNAL_COLUMNS,
     )
+    program_rows = _copy_and_require_columns(programs, "programs", PROGRAM_COLUMNS)
     intervention_rows = _copy_and_require_columns(
         interventions,
         "interventions",
@@ -480,6 +559,7 @@ def run_pipeline(
 
     rejected: list[dict[str, Any]] = []
     accepted_participants = _process_participants(participant_rows, rejected)
+    accepted_programs = _process_programs(program_rows, rejected)
     accepted_signals = _process_daily_signals(
         signal_rows,
         accepted_participants,
@@ -491,6 +571,7 @@ def run_pipeline(
     accepted_interventions = _process_interventions(
         intervention_rows,
         accepted_participants,
+        accepted_programs,
         accepted_signal_keys,
         rejected,
     )
@@ -504,11 +585,13 @@ def run_pipeline(
 
     source_counts = {
         "participants": len(participant_rows),
+        "programs": len(program_rows),
         "daily_signals": len(signal_rows),
         "interventions": len(intervention_rows),
     }
     accepted_counts = {
         "participants": len(accepted_participants),
+        "programs": len(accepted_programs),
         "daily_signals": len(accepted_signals),
         "interventions": len(accepted_interventions),
     }
@@ -517,6 +600,7 @@ def run_pipeline(
     }
     duplicate_counts = {
         "participants": int((rejected_records["reason_code"] == "duplicate_participant_id").sum()),
+        "programs": int((rejected_records["reason_code"] == "duplicate_program_id").sum()),
         "daily_signals": int((rejected_records["reason_code"] == "duplicate_signal_key").sum()),
         "interventions": int(
             (rejected_records["reason_code"] == "duplicate_intervention_id").sum()
@@ -539,6 +623,20 @@ def run_pipeline(
         "output_count": len(participant_days),
         "duplicate_counts": duplicate_counts,
         "missing_participant_counts": missing_participant_counts,
+        "source_profiles": profile_sources(
+            {
+                "participants": (participant_rows, PARTICIPANT_COLUMNS, "participant_id"),
+                "programs": (program_rows, PROGRAM_COLUMNS, "program_id"),
+                "daily_signals": (
+                    signal_rows,
+                    DAILY_SIGNAL_COLUMNS,
+                    ("participant_id", "observed_on"),
+                ),
+                "interventions": (intervention_rows, INTERVENTION_COLUMNS, "intervention_id"),
+            },
+            accepted_counts,
+            rejected_counts,
+        ),
         "content_hashes": {
             "participant_days": _canonical_hash(participant_days),
             "rejected_records": _canonical_hash(rejected_records),
@@ -550,6 +648,28 @@ def run_pipeline(
         rejected_records=rejected_records,
         audit=audit,
     )
+
+
+def profile_sources(
+    sources: dict[str, tuple[pd.DataFrame, tuple[str, ...], str | tuple[str, ...]]],
+    accepted_counts: dict[str, int],
+    rejected_counts: dict[str, int],
+) -> dict[str, dict[str, Any]]:
+    """Return bounded aggregate metadata without source values."""
+    profiles: dict[str, dict[str, Any]] = {}
+    for source, (frame, required_columns, key_columns) in sources.items():
+        keys = [key_columns] if isinstance(key_columns, str) else list(key_columns)
+        profiles[source] = {
+            "row_count": len(frame),
+            "column_count": len(frame.columns),
+            "required_field_null_counts": {
+                column: int(frame[column].isna().sum()) for column in required_columns
+            },
+            "duplicate_key_count": int(frame.duplicated(keys, keep=False).sum()),
+            "accepted_count": accepted_counts[source],
+            "rejected_count": rejected_counts[source],
+        }
+    return profiles
 
 
 def audit_to_json(result: PipelineResult) -> str:

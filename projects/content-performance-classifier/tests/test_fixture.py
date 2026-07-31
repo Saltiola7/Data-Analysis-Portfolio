@@ -34,10 +34,10 @@ def test_synthetic_fixture_obeys_schema_and_ranges(fixture) -> None:
     assert set(frame["topic_family"]).issubset(TOPIC_FAMILIES)
     assert set(frame["content_type"]).issubset(CONTENT_TYPES)
     assert frame["word_count"].between(200, 5_000).all()
-    assert frame["readability_score"].between(0, 100).all()
+    assert frame["readability_score"].dropna().between(0, 100).all()
     assert frame["age_days"].between(0, 2_000).all()
     assert frame["internal_link_count"].between(0, 100).all()
     assert frame["entity_count"].between(0, 100).all()
-    assert frame["query_coverage"].between(0, 1).all()
+    assert frame["query_coverage"].dropna().between(0, 1).all()
     assert frame["update_cadence"].between(0, 24).all()
     assert set(frame["high_engagement"]) == {0, 1}
