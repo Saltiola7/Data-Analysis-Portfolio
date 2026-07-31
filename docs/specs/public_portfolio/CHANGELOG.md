@@ -94,4 +94,8 @@ title: Public Engineering Portfolio Changelog
   both Chromium interaction journeys.
 - No private assessment prompt, supplied data, solution code, output, schema,
   grader behavior, or credential image was reused in either implementation.
+- Dependency review found moderate GHSA-9xwg-3r6f-jcx2 in Marimo's pinned
+  PyMdown Extensions dependency. Portfolio apps do not enable the affected
+  `pymdownx.b64` extension; upgrading is tracked for the first Marimo release
+  compatible with PyMdown Extensions 11.
 - Implementation commit: `4fc687e`.
