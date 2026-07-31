@@ -71,6 +71,32 @@ then the majority-class baseline is fit from training labels, validation
 supports exploration, and reserved-test evidence uses only the
 validation-selected reporting threshold.
 
+### Impute missing numeric features without leakage
+
+Given allowed numeric features contain missing values, when training runs, then
+grouped and global medians are learned only from the training partition and the
+same fitted policy transforms validation, reserved-test, and prediction rows.
+
+### Compare transparent, nonlinear, and prevalence models
+
+Given one fixed split identity, when model benchmarking runs, then logistic
+regression, random forest, and a prevalence baseline are evaluated on the same
+validation rows and no reserved-test outcome participates in model comparison.
+
+### Select a recall-constrained threshold
+
+Given a visitor chooses a minimum recall between 0.50 and 0.95, when the
+reporting threshold is selected, then validation precision is maximized among
+thresholds meeting the constraint, the selected threshold is returned
+explicitly, and the reserved test is evaluated once at that frozen threshold.
+
+### Quantify fixed-policy uncertainty
+
+Given a frozen reporting threshold and reserved-test probabilities, when
+uncertainty is requested, then deterministic stratified bootstrap resampling
+reports a percentile interval for reserved-test precision without retuning the
+threshold in any resample.
+
 ### Prevent target leakage
 
 Given input data contains the target or prohibited proxy columns, when features

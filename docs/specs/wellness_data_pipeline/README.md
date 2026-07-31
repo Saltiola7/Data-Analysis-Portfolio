@@ -113,12 +113,12 @@ deterministic content hashes.
 
 ## Behavior
 
-### Build a valid participant-day table
+### Build a valid four-source participant-day table
 
-Given valid synthetic participants, daily signals, and interventions, when the
-pipeline runs, then units normalize, interventions aggregate without changing
-participant-day grain, output ordering is deterministic, and the audit report
-balances all input rows.
+Given valid synthetic participants, programs, daily signals, and interventions,
+when the pipeline runs, then program references resolve, units normalize,
+interventions aggregate without changing participant-day grain, output ordering
+is deterministic, and the audit report balances all input rows.
 
 ### Normalize supported units
 
@@ -137,6 +137,18 @@ silently enter the curated output.
 Given a signal or intervention references no participant, when the pipeline
 runs, then it is rejected and counted in the audit report.
 
+### Reject unknown programs
+
+Given an intervention references no program, when the pipeline runs, then the
+intervention enters the rejected ledger with an `unknown_program` reason and
+does not affect participant-day aggregates.
+
+### Profile sources without disclosing values
+
+Given any admitted source table, when the pipeline runs, then the audit report
+records its row count, column count, required-field null counts, duplicate-key
+count, and accepted/rejected counts without copying raw values into the profile.
+
 ### Preserve idempotency
 
 Given identical inputs and schema version, when the pipeline runs repeatedly,
@@ -146,7 +158,7 @@ then curated rows, rejected rows, ordering, and hashes are identical.
 
 Given multiple interventions occur for one participant-day, when aggregation
 runs, then the curated output retains one participant-day row and reports the
-correct event count and total dose.
+correct event count, distinct program count, and total dose.
 
 ## Interfaces
 
