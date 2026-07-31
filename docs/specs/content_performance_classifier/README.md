@@ -233,22 +233,44 @@ The Marimo notebook is a thin adapter over these tested functions.
 ## Contracts
 
 - Training input is copied before use and limited to 5,000 rows.
-- Required columns and value ranges fail closed before fitting.
+- Required columns and categorical values fail closed before fitting. Selected
+  numeric predictor columns may be missing; infinite values and invalid
+  nonmissing ranges fail closed.
 - The feature allowlist is immutable and excludes identifiers, labels, outcome
   proxies, free text, and split markers.
 - The deterministic stratified split is 60% training, 20% validation, and 20%
   reserved test, with partition identities recorded.
-- Preprocessing is fit only on the training split through one pipeline.
+- Grouped numeric medians and global fallbacks are fit only on the training
+  split through the model pipeline. Validation and reserved-test values cannot
+  alter imputation statistics.
+- An unseen group uses the training-global median. A feature with no finite
+  training value fails before fitting.
 - A fixed-seed logistic classifier is the transparent MVP model.
-- Validation-only threshold exploration selects one reporting threshold.
+- The model benchmark uses the same split identity for logistic regression,
+  fixed-parameter random forest, and prevalence baseline. Benchmark metrics use
+  validation outcomes only and never select the primary transparent model.
+- Minimum recall is finite and between 0.50 and 0.95 inclusive.
+- Validation-only threshold selection maximizes precision among thresholds
+  meeting minimum recall, then prefers higher recall and the higher threshold
+  as deterministic tie-breaks. No feasible threshold raises an actionable
+  policy error.
 - Reserved-test evidence uses that fixed threshold and never drives the slider
   or threshold-selection rule.
+- Reserved-test bootstrap uncertainty uses deterministic class-stratified
+  resampling at the fixed threshold, 500 resamples by default, and a 95%
+  percentile interval. The threshold is never reselected inside a resample.
+- Bootstrap requests accept 100 to 5,000 resamples. Reserved evidence missing
+  either class raises an actionable evaluation error.
 - Evaluation includes baseline accuracy, accuracy, balanced accuracy,
   precision, recall, F1, ROC AUC, Brier score, confusion counts, calibration,
   and slice support.
 - Undefined metrics use explicit zero-division behavior and remain visible.
 - The notebook states that synthetic performance does not estimate production
   uplift or external validity.
+- The synthetic generator introduces deterministic missingness only in
+  imputation-enabled numeric predictors and records its generator version.
+- Project README and certification evidence expose canonical source,
+  specification, and Molab links.
 - Uploaded data remains runtime-only; no network or persistence is used.
 - No copied DataCamp prompt, supplied dataset, solution code, exact feature
   design, label, threshold, metric, output, or credential image enters the

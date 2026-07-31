@@ -222,18 +222,32 @@ bounded upload paths, shows quality evidence, and offers explicit downloads.
   2 MB and 10,000 data rows.
 - Dates use ISO calendar dates and invalid values are rejected.
 - Participant IDs and event IDs are nonempty strings.
-- Duplicate participants and intervention IDs are rejected deterministically.
+- Program IDs and names are nonempty strings.
+- Duplicate participants, programs, and intervention IDs are rejected
+  deterministically; conflicting duplicate keys admit no arbitrary winner.
 - Duplicate daily-signal keys retain no arbitrary winner; every conflicting row
   is rejected.
+- Every admitted intervention resolves one admitted participant and one admitted
+  program. Unknown references are rejected before aggregation.
 - Negative duration, dose, or pulse values are rejected.
 - Supported duration units: `minute`, `minutes`, `min`, `hour`, `hours`, `h`.
 - Supported dose units: `mcg`, `ug`, `mg`, `g`.
 - Curated output is sorted by participant and date.
+- Distinct program counts are computed from admitted intervention program IDs
+  after referential validation and before the participant-day join.
+- Source profiles contain aggregate counts only. Required-field null counts and
+  duplicate-key counts are computed from copied inputs; accepted plus rejected
+  counts reconcile to the source-specific processing contract.
 - Rejected details never contain raw credentials or unrestricted payload dumps.
 - CSV downloads prefix string cells beginning with spreadsheet formula control
   characters while leaving numeric negative values unchanged.
 - Audit hashes use canonical CSV serialization and SHA-256.
 - Synthetic generation uses a fixed seed and records generator version.
+- The default fixture includes at least three programs and at least one
+  deterministic invalid program reference so the rejection path remains
+  demonstrable.
+- Project README and certification evidence expose canonical source,
+  specification, and Molab links.
 - No personal data or copied certification prompt, supplied dataset, solution,
   output, or credential image enters fixtures or snapshots.
 
